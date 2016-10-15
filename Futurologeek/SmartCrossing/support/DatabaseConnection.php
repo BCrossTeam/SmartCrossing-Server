@@ -7,35 +7,24 @@ include_once("../config/Credentials.php");
 
 class DatabaseConnection
 {
-
-    /**
-     * @var \mysqli
-     */
+    /** @var \mysqli */
     private $mysqli;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $host = Settings::DEBUG ? Credentials::DEV_MYSQL_HOST : Credentials::MYSQL_HOST;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $user = Settings::DEBUG ? Credentials::DEV_MYSQL_LOGIN : Credentials::MYSQL_LOGIN;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $password = Settings::DEBUG ? Credentials::DEV_MYSQL_PASSWORD : Credentials::MYSQL_PASSWORD;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $database = Settings::DEBUG ? Credentials::DEV_MYSQL_DB : Credentials::MYSQL_DB;
-
 
     /**
      * DatabaseConnection constructor.
-     * @param null $host
-     * @param null $user
-     * @param null $password
-     * @param null $database
+     *
+     * @param null|string $host
+     * @param null|string $user
+     * @param null|string $password
+     * @param null|string $database
      */
     public function __construct($host = null, $user = null, $password = null, $database = null) {
         if($host != null){
@@ -63,10 +52,19 @@ class DatabaseConnection
     }
 
     /**
-     * @param null $host
-     * @param null $user
-     * @param null $password
-     * @param null $database
+     * Function used to connect to database.
+     * If params are null default credentials are used.
+     * In other case supplied credentials are used.
+     *
+     * @param null|string $host
+     * @param null|string $user
+     * @param null|string $password
+     * @param null|string $database
+     *
+     * Returns:
+     * mysqli on success
+     * null on error
+     *
      * @return \mysqli|null
      */
     public function databaseConnect($host = null, $user = null, $password = null, $database = null){
@@ -91,11 +89,19 @@ class DatabaseConnection
     }
 
     /**
-     * @param $query
-     * @param null $selected
-     * @param null $where_types
-     * @param null $where_variables
-     * @return array|int|null
+     * Function used to execute query not possible to execute in other functions ex. statement using joined tables.
+     *
+     * @param string $query
+     * @param null|array $selected
+     * @param null|string $where_types
+     * @param null|array $where_variables
+     *
+     * Returns:
+     * -1 on error
+     * affected rows count on success if $selected is null
+     * selected rows (array) on success if $selected is not null
+     *
+     * @return array|int
      */
     public function databaseRawQuery($query, $selected = null, $where_types = null, $where_variables = null){
         if($this->databaseConnect() == null){
@@ -147,18 +153,26 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param $columns
-     * @param $input_types
-     * @param $input
-     * @return int|null
+     * Function used to insert single table row to database.
+     *
+     * @param string $table
+     * @param array $columns
+     * @param string $input_types
+     * @param array $input
+     *
+     * Returns:
+     * -1 on error
+     * inserted row id on success
+     *
+     * @return int
      */
     public function databaseInsertRow($table, $columns, $input_types, $input){
         if($this->databaseConnect() == null){
             return -1;
         }
 
-        $query = 'INSERT INTO ' . $table . '(' . implode(', ', $columns) . ') VALUES (' . implode(', ', array_fill(0, count($input), '?')) . ')';
+        $query = 'INSERT INTO ' . $table . '(' . implode(', ', $columns) .
+            ') VALUES (' . implode(', ', array_fill(0, count($input), '?')) . ')';
         $stmt = null;
         $output = null;
 
@@ -181,11 +195,18 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param $where
-     * @param $where_types
-     * @param $where_variables
-     * @return int|null
+     * Function used to delete table row(s) from database.
+     *
+     * @param string $table
+     * @param string $where
+     * @param string $where_types
+     * @param array $where_variables
+     *
+     * Returns:
+     * -1 on error
+     * affected rows count on success
+     *
+     * @return int
      */
     public function databaseDeleteRow($table, $where, $where_types, $where_variables){
         if($this->databaseConnect() == null){
@@ -215,8 +236,15 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @return int|null
+     * Function used to delete all table rows from database.
+     *
+     * @param string $table
+     *
+     * Returns:
+     * -1 on error
+     * affected rows count on success
+     *
+     * @return int
      */
     public function databaseDeleteAllRows($table){
         if($this->databaseConnect() == null){
@@ -242,14 +270,21 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param $columns
-     * @param $input_types
-     * @param $input
-     * @param $where
-     * @param $where_types
-     * @param $where_variables
-     * @return int|null
+     * Function used to update table row in database.
+     *
+     * @param string $table
+     * @param array $columns
+     * @param string $input_types
+     * @param array $input
+     * @param string $where
+     * @param string $where_types
+     * @param array $where_variables
+     *
+     * Returns:
+     * -1 on error
+     * affected rows count on success
+     *
+     * @return int
      */
     public function databaseUpdate($table, $columns, $input_types, $input, $where, $where_types, $where_variables){
         if($this->databaseConnect() == null){
@@ -277,22 +312,33 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param $selected
-     * @param null $where
-     * @param null $where_types
-     * @param null $where_variables
-     * @param null $order_by
-     * @param bool $descendant
+     * Function used to fetch table row(s) form database.
+     *
+     * @param string $table
+     * @param array $selected
+     * @param null|string $where
+     * @param null|string $where_types
+     * @param null|array $where_variables
+     * @param null|string $order_by
+     * @param null|bool $descendant
      * @param int $buffer
+     *
+     * Returns:
+     * -1 on error
+     * null if no rows has been fetched
+     * array on success
+     *
      * @return array|int|null
      */
-    public function databaseFetch($table, $selected, $where = null, $where_types = null, $where_variables = null, $order_by = null, $descendant = false, $buffer = 0){
+    public function databaseFetch($table, $selected, $where = null, $where_types = null, $where_variables = null,
+                                  $order_by = null, $descendant = false, $buffer = 0){
         if($this->databaseConnect() == null){
             return -1;
         }
 
-        $query = 'SELECT ' . implode(', ', $selected) . ' FROM '. $table . ($where != null ? (' WHERE ' . $where) : '') . ($order_by != null ? (' ORDER BY ? ' . ($descendant ? ' DESC' : ' ASC')) : '') . ($buffer > 0 ? (' LIMIT 0, ?') : '');
+        $query = 'SELECT ' . implode(', ', $selected) . ' FROM '. $table . ($where != null ? (' WHERE ' . $where) : '')
+            . ($order_by != null ? (' ORDER BY ? ' . ($descendant ? ' DESC' : ' ASC')) : '')
+            . ($buffer > 0 ? (' LIMIT 0, ?') : '');
         $stmt = null;
         $output = null;
 
@@ -353,11 +399,18 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param null $where
-     * @param null $where_types
-     * @param null $where_variables
-     * @return int|null
+     * Function used to check count of table rows matching conditions.
+     *
+     * @param string $table
+     * @param null|string $where
+     * @param null|string $where_types
+     * @param null|array $where_variables
+     *
+     * Returns
+     * -1 on error
+     * rows matching condition on success
+     *
+     * @return int
      */
     public function databaseCount($table, $where = null, $where_types = null, $where_variables = null){
         if($this->databaseConnect() == null){
@@ -398,10 +451,18 @@ class DatabaseConnection
     }
 
     /**
-     * @param $table
-     * @param null $where
-     * @param null $where_types
-     * @param null $where_variables
+     * Function used to check if database table contains row matching conditions.
+     *
+     * @param string $table
+     * @param null|string $where
+     * @param null|string $where_types
+     * @param null|array $where_variables
+     *
+     * Returns:
+     * -1 on error
+     * false if row is not present in database
+     * true if row is present in database
+     *
      * @return bool|int
      */
     public function databaseExists($table, $where = null, $where_types = null, $where_variables = null){

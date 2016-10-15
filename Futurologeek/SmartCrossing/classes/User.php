@@ -12,107 +12,92 @@ class User
     const USER_ACCOUNT_TYPE_MODERATOR   = "m";
     const USER_ACCOUNT_TYPE_ADMIN       = "a";
 
-    private $userId = 0;
-    private $userEmail = "";
-    private $userPassword = "";
-    private $userAuthToken = "";
-    private $userName = "";
-    private $userScore = 0;
+    /** @var int */
+    private $userId;
+    /** @var string */
+    private $userEmail;
+    /** @var string */
+    private $userPassword;
+    /** @var string */
+    private $userAuthToken;
+    /** @var string */
+    private $userName;
+    /** @var int */
+    private $userScore;
+    /**
+     * Requires USER_ACCOUNT_TYPE_... constant as value.
+     * @var string
+     */
     private $userAccountType;
 
-    /**
-     * @return int
-     */
+    /** @return int */
     public function getUserId(){
         return $this->userId;
     }
 
-    /**
-     * @param int $userId
-     */
+    /** @param int $userId */
     public function setUserId($userId){
         $this->userId = $userId;
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getUserEmail(){
         return $this->userEmail;
     }
 
-    /**
-     * @param string $userEmail
-     */
+    /** @param string $userEmail */
     public function setUserEmail($userEmail){
         $this->userEmail = $userEmail;
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getUserPassword(){
         return $this->userPassword;
     }
 
-    /**
-     * @param string $userPassword
-     */
+    /** @param string $userPassword */
     public function setUserPassword($userPassword){
         $this->userPassword = $userPassword;
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getUserAuthToken(){
         return $this->userAuthToken;
     }
 
-    /**
-     * @param string $userAuthToken
-     */
+    /** @param string $userAuthToken */
     public function setUserAuthToken($userAuthToken){
         $this->userAuthToken = $userAuthToken;
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getUserName(){
         return $this->userName;
     }
 
-    /**
-     * @param string $userName
-     */
+    /** @param string $userName */
     public function setUserName($userName){
         $this->userName = $userName;
     }
 
-    /**
-     * @return int
-     */
+    /** @return int */
     public function getUserScore(){
         return $this->userScore;
     }
 
-    /**
-     * @param int $userScore
-     */
+    /** @param int $userScore */
     public function setUserScore($userScore){
         $this->userScore = $userScore;
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getUserAccountType()
     {
         return $this->userAccountType;
     }
 
     /**
+     * Requires USER_ACCOUNT_TYPE_... constant as value.
      * @param string $userAccountType
      */
     public function setUserAccountType($userAccountType)
@@ -131,6 +116,12 @@ class User
 
 
     /**
+     * Function used to generate unique AuthToken
+     *
+     * Returns:
+     * -1 on mysqli error
+     * unique AuthToken on success
+     *
      * @return int|string
      */
     private function generateAuthToken(){
@@ -138,14 +129,21 @@ class User
         $mysqli->databaseConnect();
         do{
             $token = Support::generateString(20, Settings::CHARACTERS_ALPHANUMERIC_LOWERCASE);
-            $exists = $mysqli->databaseExists(Settings::DATABASE_TABLE_USERS, Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$token]);
+            $exists = $mysqli->databaseExists(Settings::DATABASE_TABLE_USERS, Settings::KEY_USERS_USER_AUTH_TOKEN."=?",
+                "s", [$token]);
         } while($exists >= 1);
         $mysqli->databaseClose();
         return $exists < 0 ? -1 : $this->userAuthToken = $token;
     }
 
     /**
-     * @return bool|string
+     * Function used to add user to database.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
      */
     public function signUp(){
         if(($temp = self::validateEmailAddress($this->userEmail)) !== true){ return $temp; }
@@ -169,15 +167,16 @@ class User
         $mysqli->databaseConnect();
         $password = password_hash($this->userPassword, PASSWORD_BCRYPT, ['cost' => 10]);
         $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_USERS,
-            [Settings::KEY_USERS_USER_EMAIL, Settings::KEY_USERS_USER_PASSWORD, Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_CREATION_DATE],
-            "ssss", [$this->userEmail, $password, $this->userName, date_create(null, new \DateTimeZone("UTC"))->format('Y-m-d H:i:s')]);
+            [Settings::KEY_USERS_USER_EMAIL, Settings::KEY_USERS_USER_PASSWORD, Settings::KEY_USERS_USER_NAME,
+                Settings::KEY_USERS_USER_CREATION_DATE], "ssss", [$this->userEmail, $password, $this->userName,
+                date_create(null, new \DateTimeZone("UTC"))->format('Y-m-d H:i:s')]);
         $mysqli->databaseClose();
         if($result == -1){
             return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
         } else {
             $data = [];
             $user = $this->getUser(true);
-            if($user != null) {
+            if($user != null && !is_int($user)) {
                 foreach ($user as $key => $value){
                     $data[] = [$key, $value];
                 }
@@ -187,7 +186,13 @@ class User
     }
 
     /**
-     * @return bool|string
+     * Function used to sign in user and generate valid AuthToken.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
      */
     public function signIn(){
         if(($temp = self::validateEmailAddress($this->userEmail)) !== true){ return $temp; }
@@ -195,7 +200,8 @@ class User
 
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
-        $password = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_PASSWORD], Settings::KEY_USERS_USER_EMAIL . "=?", "s", [$this->userEmail]);
+        $password = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_PASSWORD],
+            Settings::KEY_USERS_USER_EMAIL . "=?", "s", [$this->userEmail]);
         if($password == -1) {
             $mysqli->databaseClose();
             return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
@@ -206,7 +212,8 @@ class User
 
         $token = $this->generateAuthToken();
         if(password_verify($this->userPassword, $password[0][0])){
-            $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SIGNED_IN, Settings::KEY_USERS_USER_AUTH_TOKEN],
+            $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS,
+                [Settings::KEY_USERS_USER_SIGNED_IN, Settings::KEY_USERS_USER_AUTH_TOKEN],
                 "is", [1, $token], Settings::JSON_KEY_USERS_USER_EMAIL . "=?", "s", [$this->userEmail]);
             $mysqli->databaseClose();
 
@@ -215,9 +222,9 @@ class User
             } if($result == 0){
                 return Settings::buildErrorMessage(Settings::ERROR_SIGN_IN_FAILED);
             } else {
-                $data = array([Settings::JSON_KEY_USERS_USER_AUTH_TOKEN, $this->userAuthToken]);
+                $data = [[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN, $this->userAuthToken]];
                 $user = $this->getUser(true);
-                if($user != null) {
+                if($user != null && !is_int($user)) {
                     foreach ($user as $key => $value){
                         $data[] = [$key, $value];
                     }
@@ -230,15 +237,31 @@ class User
     }
 
     /**
+     * Function used to check if AuthToken is active.
+     *
      * @param bool $returnRaw
-     * @return array|bool|int|null|string
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null on failure
+     * Array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
      */
     public function signAuth($returnRaw = false){
         if(($temp = self::validateAuthToken($this->userAuthToken)) !== true){ return $temp; }
 
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
-        $id = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_ID], Settings::KEY_USERS_USER_AUTH_TOKEN . "=? AND " . Settings::KEY_USERS_USER_SIGNED_IN . "=?" , "si", [$this->userAuthToken, 1]);
+        $id = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN . "=? AND " . Settings::KEY_USERS_USER_SIGNED_IN . "=?",
+            "si", [$this->userAuthToken, 1]);
         $mysqli->databaseClose();
         if($id == -1) {
             if($returnRaw){
@@ -260,22 +283,38 @@ class User
                     Settings::JSON_KEY_USERS_USER_ID => $this->userId
                 ];
             } else {
-                return Settings::buildSuccessMessage(Settings::SUCCESS_AUTH, [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
-
+                return Settings::buildSuccessMessage(Settings::SUCCESS_AUTH,
+                    [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
             }
         }
     }
 
     /**
+     * Function used to sign out user and invalidate AuthToken.
+     *
      * @param bool $returnRaw
-     * @return array|bool|int|null|string
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null on failure
+     * Array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
      */
     public function signOut($returnRaw = false){
         if(($temp = self::validateAuthToken($this->userAuthToken)) !== true){ return $temp; }
 
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
-        $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SIGNED_IN, Settings::KEY_USERS_USER_AUTH_TOKEN], "is", [0, null], Settings::KEY_USERS_USER_AUTH_TOKEN . "=?", "s", [$this->userAuthToken]);
+        $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_SIGNED_IN, Settings::KEY_USERS_USER_AUTH_TOKEN], "is", [0, null],
+            Settings::KEY_USERS_USER_AUTH_TOKEN . "=?", "s", [$this->userAuthToken]);
         $mysqli->databaseClose();
         if($result == -1) {
             if($returnRaw){
@@ -301,31 +340,55 @@ class User
     }
 
     /**
+     * Function used to check if user account exists.
+     *
+     * Returns:
+     * -1 on mysql error
+     * false if user is not signed up
+     * true if user is signed up
+     *
      * @return bool|int
      */
     public function isSignedUp(){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
-        $result = $mysqli->databaseExists(Settings::DATABASE_TABLE_USERS, Settings::KEY_USERS_USER_EMAIL."=?", "s", [$this->userEmail]);
+        $result = $mysqli->databaseExists(Settings::DATABASE_TABLE_USERS, Settings::KEY_USERS_USER_EMAIL."=?",
+            "s", [$this->userEmail]);
         $mysqli->databaseClose();
         return $result;
     }
 
     /**
+     * Function used to get user public data (id, name, score) using user id or user email address.
+     *
      * @param bool $returnRaw
-     * @return null|string
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null on failure
+     * Array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
      */
     public function getUser($returnRaw = false){
-        $mysqli = new DatabaseConnection();
-        $mysqli->databaseConnect();
-        if($this->userId != null){
-            $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
+        if($this->userId > 0){
+            $mysqli = new DatabaseConnection();
+            $mysqli->databaseConnect();
+            $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+                [Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
                 Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
             $mysqli->databaseClose();
 
             if($returnRaw){
                 if($result === -1 || $result === null){
-                    return null;
+                    return $result;
                 } else {
                     return [
                         Settings::JSON_KEY_USERS_USER_ID => $this->userId,
@@ -337,7 +400,8 @@ class User
                 if($result === -1){
                     return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
                 } else if($result === null){
-                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS, [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                        [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
                 } else {
                     return json_encode([
                         Settings::JSON_KEY_USERS_USER_ID => $this->userId,
@@ -347,13 +411,16 @@ class User
                 }
             }
         } else if($this->userEmail != null){
-            $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
+            $mysqli = new DatabaseConnection();
+            $mysqli->databaseConnect();
+            $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+                [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
                 Settings::KEY_USERS_USER_EMAIL."=?", "s", [$this->userEmail]);
             $mysqli->databaseClose();
 
             if($returnRaw){
                 if($result === -1 || $result === null){
-                    return null;
+                    return $result;
                 } else {
                     return [
                         Settings::JSON_KEY_USERS_USER_ID => $result[0][0],
@@ -365,7 +432,8 @@ class User
                 if($result === -1){
                     return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
                 } else if($result === null){
-                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS, [Settings::JSON_KEY_USERS_USER_EMAIL, $this->userEmail]);
+                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                        [Settings::JSON_KEY_USERS_USER_EMAIL, $this->userEmail]);
                 } else {
                     return json_encode([
                         Settings::JSON_KEY_USERS_USER_ID => $result[0][0],
@@ -376,7 +444,7 @@ class User
             }
         } else {
             if($returnRaw){
-                return null;
+                return -2;
             } else {
                 return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
             }
@@ -385,49 +453,86 @@ class User
 
     /* Statics */
     /**
+     * Function used to check if provided email address format is valid.
+     *
      * @param $value
+     *
+     * Returns:
+     * Error message on error
+     * false if value is not valid
+     * true if value is valid
+     *
      * @return bool|string
      */
     public static function validateEmailAddress($value){
         if($value == null){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_EMAIL_ADDRESS]);
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_EMAIL_ADDRESS]);
         } else if(!filter_var($value, FILTER_VALIDATE_EMAIL)){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_EMAIL_ADDRESS]);
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_EMAIL_ADDRESS]);
         } else {
             return true;
         }
     }
 
     /**
+     * Function used to check if provided password format is in valid.
+     *
      * @param $value
+     *
+     * Returns:
+     * Error message on error
+     * false if value is not valid
+     * true if value is valid
+     *
      * @return bool|string
      */
     public static function validatePassword($value){
         if($value == null){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_PASSWORD]);
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_PASSWORD]);
         } else if(preg_match("/\\s+/", $value)){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_PASSWORD]);
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_PASSWORD]);
         } else {
             return true;
         }
     }
 
     /**
+     * Function used to check if provided AuthToken format is valid.
+     *
      * @param $value
+     *
+     * Returns:
+     * Error message on error
+     * false if value is not valid
+     * true if value is valid
+     *
      * @return bool|string
      */
     public static function validateAuthToken($value){
         if($value == null){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_AUTH_TOKEN]);
-        } else if((strlen($value) != 20) || (preg_match("/[^".Settings::CHARACTERS_ALPHANUMERIC_LOWERCASE."]+/", $value) != 0)){
-            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID, [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_AUTH_TOKEN]);
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_AUTH_TOKEN]);
+        } else if((strlen($value) != 20)
+            || (preg_match("/[^".Settings::CHARACTERS_ALPHANUMERIC_LOWERCASE."]+/", $value) != 0)){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_USER_AUTH_TOKEN]);
         } else {
             return true;
         }
     }
 
     /**
+     * Function used to check if provided user name format is valid.
+     *
      * @param $value
+     *
+     * Returns:
+     * true
+     *
      * @return bool
      */
     public static function validateUserName($value){

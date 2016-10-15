@@ -3,8 +3,16 @@ Options +FollowSymlinks -Indexes
 RewriteEngine on
 
 # map neat URL to internal URL
-RewriteRule ^user/?$   index.php?class=user&action=none [nc,qsa]
-RewriteRule ^user/([0-9]+)/?$  index.php?class=user&action=none&id=$1 [nc,qsa]
-RewriteRule ^user/sign/?$   index.php?class=user&action=sign [nc,qsa]
-RewriteRule ^user/auth/?$   index.php?class=user&action=auth [nc,qsa]
-RewriteRule ^user/auth/([a-zA-Z0-9]+)/?$   index.php?class=user&action=auth&token=$1 [nc,qsa]
+RewriteRule ^user/?$                                index.php?class=user&action=none [nc,qsa]
+RewriteRule ^user/([0-9]+)/?$                       index.php?class=user&action=none&id=$1 [nc,qsa]
+RewriteRule ^user/sign/?$                           index.php?class=user&action=sign [nc,qsa]
+RewriteRule ^user/auth/?$                           index.php?class=user&action=auth [nc,qsa]
+RewriteRule ^user/auth/([a-zA-Z0-9]+)/?$            index.php?class=user&action=auth&token=$1 [nc,qsa]
+
+RewriteRule ^bookshelf/?$                           index.php?class=bookshelf&action=none [nc,qsa]
+RewriteRule ^bookshelf/([0-9]+)/?$                  index.php?class=bookshelf&action=none&id=$1 [nc,qsa]
+RewriteRule ^bookshelf/([0-9]+)/book/([0-9]+)/?$    index.php?class=bookshelf&action=book&id=$1&book_id=$2 [nc,qsa]
+RewriteRule ^bookshelf/([0-9]+)/book/?$             index.php?class=bookshelf&action=book&id=$1 [nc,qsa]
+
+RewriteRule ^book/?$                                index.php?class=book&action=none [nc,qsa]
+RewriteRule ^book/([0-9]+)/?$                       index.php?class=book&action=none&id=$1 [nc,qsa]
