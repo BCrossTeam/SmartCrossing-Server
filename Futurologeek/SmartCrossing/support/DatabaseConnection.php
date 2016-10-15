@@ -3,6 +3,7 @@
 namespace Futurologeek\SmartCrossing;
 
 include_once("../config/Settings.php");
+include_once("../config/Credentials.php");
 
 class DatabaseConnection
 {
