@@ -1,0 +1,3 @@
+# Turn rewrite engine on
+Options -Indexes
+Deny from all
