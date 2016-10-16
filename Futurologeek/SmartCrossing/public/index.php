@@ -1,4 +1,6 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
 
 include_once("../classes/User.php");
 include_once("../classes/Book.php");
