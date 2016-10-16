@@ -31,6 +31,8 @@ class Settings
     const ERROR_BOOK_NOT_EXISTS                 = 11;
     const ERROR_BOOK_ALREADY_IN_BOOKSHELF       = 12;
     const ERROR_BOOK_NOT_IN_BOOKSHELF           = 13;
+    const ERROR_CANNOT_BORROW_BOOK              = 14;
+    const ERROR_CANNOT_RETURN_BOOK              = 15;
 
     const SUB_ERROR_USER_EMAIL_ADDRESS          = 1;
     const SUB_ERROR_USER_NAME                   = 2;
@@ -49,6 +51,8 @@ class Settings
     const SUCCESS_BOOK_ADDED                    = 6;
     const SUCCESS_BOOK_ADDED_TO_BOOKSHELF       = 7;
     const SUCCESS_BOOK_REMOVED_FORM_BOOKSHELF   = 8;
+    const SUCCESS_BORROWED_BOOK                 = 9;
+    const SUCCESS_RETURNED_BOOK                 = 10;
 
     /* Database */
     const DATABASE_TABLE_USERS                  = "users";
@@ -83,6 +87,20 @@ class Settings
     const KEY_BOOKSHELVES_BOOKS_BOOK_ID         = "book_id";
     const KEY_BOOKSHELVES_BOOKS_BOOK_ADDER      = "book_adder";
 
+    const DATABASE_TABLE_BORROWED_BOOKS         = "borrowed_books";
+    const KEY_BORROWED_BOOKS_BORROW_ID          = "borrow_id";
+    const KEY_BORROWED_BOOKS_USER_ID            = "user_id";
+    const KEY_BORROWED_BOOKS_BOOKSHELF_ID       = "bookshelf_id";
+    const KEY_BORROWED_BOOKS_BOOK_ID            = "book_id";
+    const KEY_BORROWED_BOOKS_BORROW_TIME        = "borrow_time";
+
+    const DATABASE_TABLE_RETURNED_BOOKS         = "returned_books";
+    const KEY_RETURNED_BOOKS_RETURN_ID          = "return_id";
+    const KEY_RETURNED_BOOKS_USER_ID            = "user_id";
+    const KEY_RETURNED_BOOKS_BOOKSHELF_ID       = "bookshelf_id";
+    const KEY_RETURNED_BOOKS_BOOK_ID            = "book_id";
+    const KEY_RETURNED_BOOKS_RETURN_TIME        = "return_time";
+
     /* JSON */
     const JSON_KEY_ERROR                        = "error";
     const JSON_KEY_SUCCESS                      = "success";
@@ -116,6 +134,18 @@ class Settings
     const JSON_KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID   = self::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID;
     const JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ID        = self::KEY_BOOKSHELVES_BOOKS_BOOK_ID;
     const JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ADDER     = self::KEY_BOOKSHELVES_BOOKS_BOOK_ADDER;
+
+    const JSON_KEY_BORROWED_BOOKS_BORROW_ID         = self::KEY_BORROWED_BOOKS_BORROW_ID;
+    const JSON_KEY_BORROWED_BOOKS_USER_ID           = self::KEY_BORROWED_BOOKS_USER_ID;
+    const JSON_KEY_BORROWED_BOOKS_BOOKSHELF_ID      = self::KEY_BORROWED_BOOKS_BOOKSHELF_ID;
+    const JSON_KEY_BORROWED_BOOKS_BOOK_ID           = self::KEY_BORROWED_BOOKS_BOOK_ID;
+    const JSON_KEY_BORROWED_BOOKS_BORROW_TIME       = self::KEY_BORROWED_BOOKS_BORROW_TIME;
+
+    const JSON_KEY_RETURNED_BOOKS_RETURN_ID         = self::KEY_RETURNED_BOOKS_RETURN_ID;
+    const JSON_KEY_RETURNED_BOOKS_USER_ID           = self::KEY_RETURNED_BOOKS_USER_ID;
+    const JSON_KEY_RETURNED_BOOKS_BOOKSHELF_ID      = self::KEY_RETURNED_BOOKS_BOOKSHELF_ID;
+    const JSON_KEY_RETURNED_BOOKS_BOOK_ID           = self::KEY_RETURNED_BOOKS_BOOK_ID;
+    const JSON_KEY_RETURNED_BOOKS_RETURN_TIME       = self::KEY_RETURNED_BOOKS_RETURN_TIME;
 
     /* Statics */
     public static function buildErrorMessage($error, ...$params){

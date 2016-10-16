@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Czas generowania: 15 Paź 2016, 17:45
+-- Czas generowania: 16 Paź 2016, 06:28
 -- Wersja serwera: 5.6.30-1
 -- Wersja PHP: 7.0.11-1
 
@@ -65,6 +65,34 @@ CREATE TABLE `bookshelves_books` (
 -- --------------------------------------------------------
 
 --
+-- Struktura tabeli dla tabeli `borrowed_books`
+--
+
+CREATE TABLE `borrowed_books` (
+  `borrow_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `bookshelf_id` int(10) UNSIGNED NOT NULL,
+  `book_id` int(10) UNSIGNED NOT NULL,
+  `borrow_time` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktura tabeli dla tabeli `returned_books`
+--
+
+CREATE TABLE `returned_books` (
+  `return_id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `bookshelf_id` int(10) UNSIGNED NOT NULL,
+  `book_id` int(10) UNSIGNED NOT NULL,
+  `return_time` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktura tabeli dla tabeli `users`
 --
 
@@ -107,6 +135,24 @@ ALTER TABLE `bookshelves_books`
   ADD KEY `book_adder` (`book_adder`);
 
 --
+-- Indexes for table `borrowed_books`
+--
+ALTER TABLE `borrowed_books`
+  ADD PRIMARY KEY (`borrow_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `bookshelf_id` (`bookshelf_id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
+-- Indexes for table `returned_books`
+--
+ALTER TABLE `returned_books`
+  ADD PRIMARY KEY (`return_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `bookshelf_id` (`bookshelf_id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -129,6 +175,16 @@ ALTER TABLE `books`
 ALTER TABLE `bookshelves`
   MODIFY `bookshelf_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 --
+-- AUTO_INCREMENT dla tabeli `borrowed_books`
+--
+ALTER TABLE `borrowed_books`
+  MODIFY `borrow_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+--
+-- AUTO_INCREMENT dla tabeli `returned_books`
+--
+ALTER TABLE `returned_books`
+  MODIFY `return_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+--
 -- AUTO_INCREMENT dla tabeli `users`
 --
 ALTER TABLE `users`
@@ -150,6 +206,22 @@ ALTER TABLE `bookshelves_books`
   ADD CONSTRAINT `bookshelves_books_ibfk_1` FOREIGN KEY (`bookshelf_id`) REFERENCES `bookshelves` (`bookshelf_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `bookshelves_books_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `bookshelves_books_ibfk_3` FOREIGN KEY (`book_adder`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Ograniczenia dla tabeli `borrowed_books`
+--
+ALTER TABLE `borrowed_books`
+  ADD CONSTRAINT `borrowed_books_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `borrowed_books_ibfk_2` FOREIGN KEY (`bookshelf_id`) REFERENCES `bookshelves` (`bookshelf_id`),
+  ADD CONSTRAINT `borrowed_books_ibfk_3` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
+
+--
+-- Ograniczenia dla tabeli `returned_books`
+--
+ALTER TABLE `borrowed_books`
+  ADD CONSTRAINT `returned_books_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `returned_books_ibfk_2` FOREIGN KEY (`bookshelf_id`) REFERENCES `bookshelves` (`bookshelf_id`),
+  ADD CONSTRAINT `returned_books_ibfk_3` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

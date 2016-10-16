@@ -325,6 +325,326 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to determine whether user can borrow book or cannot.
+     * User need to have at least one book returned to selected bookshelf to be able to borrow book form it.
+     *
+     * Returns:
+     * -2 on input error or auth error
+     * -1 on mysql error
+     * false if user is not allowed to borrow a book
+     * true if user is allowed to borrow a book
+     *
+     * @return bool|int
+     */
+    public function canBorrowBook(){
+        if($this->book == null || $this->book->getBookId() <= 0){ return -2; }
+        if($this->bookshelfId <= 0){ return -2; }
+
+        $book = $this->book->getBook(true);
+        if($book == null || $book == -2){
+            return -2;
+        } elseif($book == -1){
+            return -1;
+        }
+
+        $bookshelf = $this->getBookshelf(true);
+        if($bookshelf == null || $bookshelf == -2){
+            return -2;
+        } elseif($bookshelf == -1){
+            return -1;
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return -1;
+        } else if($result === null || count($result) <= 0) {
+            return -2;
+        } else {
+            $this->user->setUserId($result[0][0]);
+
+            $borrowed = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS,
+                Settings::KEY_BORROWED_BOOKS_BOOKSHELF_ID."=? AND ".Settings::KEY_BORROWED_BOOKS_USER_ID."=?",
+                "ii", [$this->bookshelfId, $this->user->getUserId()]);
+
+            $returned = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS,
+                Settings::KEY_RETURNED_BOOKS_BOOKSHELF_ID."=? AND ".Settings::KEY_RETURNED_BOOKS_USER_ID."=?",
+                "ii", [$this->bookshelfId, $this->user->getUserId()]);
+
+            if($borrowed == -1 || $returned == -1){
+                return -1;
+            }
+        }
+
+        return $returned > $borrowed;
+    }
+
+    /**
+     * Function used to determine whether user can return book or cannot.
+     * Book must not be in any bookshelf and user have to be last borrower (if book has never been borrowed this
+     * condition is ignored).
+     *
+     * Returns:
+     * -2 on input error or auth error
+     * -1 on mysql error
+     * false if user is not allowed to return a book
+     * true if user is allowed to return a book
+     *
+     * @return bool|int
+     */
+    public function canReturnBook(){
+        if($this->book == null || $this->book->getBookId() <= 0){ return -2; }
+        if($this->bookshelfId <= 0){ return -2; }
+
+        $book = $this->book->getBook(true);
+        if($book == null || $book == -2){
+            return -2;
+        } elseif($book == -1){
+            return -1;
+        }
+
+        $bookshelf = $this->getBookshelf(true);
+        if($bookshelf == null || $bookshelf == -2){
+            return -2;
+        } elseif($bookshelf == -1){
+            return -1;
+        }
+
+
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return -1;
+        } else if($result === null || count($result) <= 0) {
+            return -2;
+        }
+
+        $this->user->setUserId($result[0][0]);
+
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BORROWED_BOOKS,
+            [Settings::KEY_BORROWED_BOOKS_USER_ID],
+            Settings::KEY_BORROWED_BOOKS_BOOKSHELF_ID."=? AND ".Settings::KEY_BORROWED_BOOKS_BOOK_ID."=?",
+            "ii", [$this->bookshelfId, $this->book->getBookId()],
+            Settings::KEY_BORROWED_BOOKS_BORROW_ID, true, 1);
+
+        if($result === -1){
+            return -1;
+        } else if($result === null || count($result) <= 0) {
+            return true;
+        } else {
+            return $result[0][0] == $this->user->getUserId();
+        }
+    }
+
+    /**
+     * Function used to borrow a book form bookshelf.
+     * If succeeded book is removed from bookshelf and user borrowing book is logged.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
+    public function borrowBook(){
+        if($this->book == null || $this->book->getBookId() <= 0){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+        if($this->bookshelfId <= 0){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_ID]);
+        }
+
+        $book = $this->book->getBook(true);
+        if($book == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        } elseif($book == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($book == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+
+        $bookshelf = $this->getBookshelf(true);
+        if($bookshelf == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+        } elseif($bookshelf == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($bookshelf == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_ID]);
+        }
+
+        $auth = $this->user->signAuth(true);
+        if($auth == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($auth == null){
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $bookshelfBook = $this->getBookshelfBook(true);
+        if($bookshelfBook === null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_IN_BOOKSHELF,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        } elseif($bookshelfBook === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($bookshelfBook === -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID);
+        }
+
+        $canBorrow = $this->canBorrowBook();
+        if($canBorrow == false) {
+            return Settings::buildErrorMessage(Settings::ERROR_CANNOT_BORROW_BOOK,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+        } elseif($canBorrow === -1) {
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($canBorrow === -2) {
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        } else {
+            $this->user->setUserId($result[0][0]);
+
+            $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BORROWED_BOOKS,
+                [Settings::KEY_BORROWED_BOOKS_BOOKSHELF_ID, Settings::KEY_BORROWED_BOOKS_BOOK_ID,
+                    Settings::KEY_BORROWED_BOOKS_USER_ID, Settings::KEY_BORROWED_BOOKS_BORROW_TIME],
+                "iiis",
+                [$this->bookshelfId, $this->book->getBookId(), $this->user->getUserId(),
+                    date_create(null, new \DateTimeZone("UTC"))->format('Y-m-d H:i:s')]);
+            $mysqli->databaseClose();
+        }
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else {
+            $this->removeBookFromBookshelf();
+            return Settings::buildSuccessMessage(Settings::SUCCESS_BORROWED_BOOK,
+                [Settings::JSON_KEY_BORROWED_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        }
+    }
+
+    /**
+     * Function used to borrow a book form bookshelf.
+     * If succeeded book is added back to bookshelf and returning user is logged.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
+    public function returnBook(){
+        if($this->book == null || $this->book->getBookId() <= 0){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+        if($this->bookshelfId <= 0){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_ID]);
+        }
+
+        $book = $this->book->getBook(true);
+        if($book == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        } elseif($book == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($book == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+
+        $bookshelf = $this->getBookshelf(true);
+        if($bookshelf == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+        } elseif($bookshelf == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($bookshelf == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_ID]);
+        }
+
+        $auth = $this->user->signAuth(true);
+        if($auth == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($auth == null){
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $isInBookshelf = $this->book->isInBookshelf();
+        if($isInBookshelf === true){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOK_ALREADY_IN_BOOKSHELF,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        } elseif($isInBookshelf === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        }
+
+        $canBorrow = $this->canReturnBook();
+        if($canBorrow == false) {
+            return Settings::buildErrorMessage(Settings::ERROR_CANNOT_RETURN_BOOK,
+                [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+        } elseif($canBorrow === -1) {
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($canBorrow === -2) {
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOK_ID]);
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        } else {
+            $this->user->setUserId($result[0][0]);
+
+            $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_RETURNED_BOOKS,
+                [Settings::KEY_RETURNED_BOOKS_BOOKSHELF_ID, Settings::KEY_RETURNED_BOOKS_BOOK_ID,
+                    Settings::KEY_RETURNED_BOOKS_USER_ID, Settings::KEY_RETURNED_BOOKS_RETURN_TIME],
+                "iiis",
+                [$this->bookshelfId, $this->book->getBookId(), $this->user->getUserId(),
+                    date_create(null, new \DateTimeZone("UTC"))->format('Y-m-d H:i:s')]);
+            $mysqli->databaseClose();
+        }
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else {
+            $this->addBookToBookshelf();
+            return Settings::buildSuccessMessage(Settings::SUCCESS_RETURNED_BOOK,
+                [Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID, $this->book->getBookId()]);
+        }
+    }
 
     /**
      * Function used to get bookshelf public data (id, latitude, longitude, name, author) using bookshelf id
