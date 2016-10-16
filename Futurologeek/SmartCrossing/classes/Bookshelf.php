@@ -772,7 +772,7 @@ class Bookshelf
             $mysqli->databaseConnect();
             $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS,
                 [Settings::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID, Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ADDER],
-                Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID."=?", "i", [$this->bookshelfId, $this->book->getBookId()]);
+                Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID."=?", "i", [$this->book->getBookId()]);
             $mysqli->databaseClose();
 
             if($returnRaw){
@@ -804,6 +804,68 @@ class Bookshelf
                 return -2;
             } else {
                 return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+            }
+        }
+    }
+
+    public function getBooksInBookshelf($returnRaw = false){
+        $exists = $this->getBookshelf(true);
+        if($exists === null || $exists === -1 || $exists === -2){
+            if($returnRaw){
+                return $exists;
+            } else {
+                if($exists === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } elseif($exists === -2){
+                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_EXISTS,
+                        [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseRawQuery(
+            "SELECT ".Settings::KEY_BOOKS_BOOK_ID.", ".Settings::KEY_BOOKS_BOOK_TITLE.
+            ", ".Settings::KEY_BOOKS_BOOK_AUTHOR." FROM ".Settings::DATABASE_TABLE_BOOKS." WHERE ".
+            Settings::KEY_BOOKS_BOOK_ID." IN (SELECT ".Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID." FROM ".
+            Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS." WHERE ".Settings::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID."=?)",
+            [Settings::JSON_KEY_BOOKS_BOOK_ID, Settings::JSON_KEY_BOOKS_BOOK_TITLE,
+                Settings::JSON_KEY_BOOKS_BOOK_AUTHOR], "i", [$this->bookshelfId]);
+        $mysqli->databaseClose();
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                return $result;
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_STATS_BOOKSHELF_ID => $this->bookshelfId, Settings::JSON_KEY_BOOKSHELF_STATS_BOOKS => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_STATS_BOOKS][] = [
+                        Settings::JSON_KEY_BOOKS_BOOK_ID => $item[0],
+                        Settings::JSON_KEY_BOOKS_BOOK_TITLE => $item[1],
+                        Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $item[2]
+                        ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else if($result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS,
+                    [Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID, $this->bookshelfId]);
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_STATS_BOOKSHELF_ID => $this->bookshelfId, Settings::JSON_KEY_BOOKSHELF_STATS_BOOKS => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_STATS_BOOKS][] = [
+                        Settings::JSON_KEY_BOOKS_BOOK_ID => $item[0],
+                        Settings::JSON_KEY_BOOKS_BOOK_TITLE => $item[1],
+                        Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $item[2]
+                    ];
+                }
+                return json_encode($output);
             }
         }
     }

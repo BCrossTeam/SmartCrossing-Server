@@ -107,6 +107,17 @@ class Settings
     const JSON_KEY_SUB_ERROR                    = "sub_error";
     const JSON_KEY_ERROR_MSG                    = "error_msg";
 
+    const JSON_KEY_BOOK_STATS_BOOK_ID               = "book_id";
+    const JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT  = "book_borrow_count";
+    const JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT   = "book_unique_borrow_count";
+    const JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT  = "book_return_count";
+    const JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT   = "book_unique_return_count";
+    const JSON_KEY_BOOK_STATS_IN_BOOKSHELF          = "book_in_bookshelf";
+    const JSON_KEY_BOOK_STATS_BOOKSHELF_ID          = "book_bookshelf_id";
+
+    const JSON_KEY_BOOKSHELF_STATS_BOOKSHELF_ID     = "bookshelf_id";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS            = "bookshelf_books";
+
     const JSON_KEY_USERS_USER_ID                    = self::KEY_USERS_USER_ID;
     const JSON_KEY_USERS_USER_EMAIL                 = self::KEY_USERS_USER_EMAIL;
     const JSON_KEY_USERS_USER_PASSWORD              = self::KEY_USERS_USER_PASSWORD;

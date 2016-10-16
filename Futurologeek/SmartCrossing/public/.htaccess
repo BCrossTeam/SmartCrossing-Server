@@ -16,3 +16,4 @@ RewriteRule ^bookshelf/([0-9]+)/book/?$             index.php?class=bookshelf&ac
 
 RewriteRule ^book/?$                                index.php?class=book&action=none [nc,qsa]
 RewriteRule ^book/([0-9]+)/?$                       index.php?class=book&action=none&id=$1 [nc,qsa]
+RewriteRule ^book/([0-9]+)/stats?$                  index.php?class=book&action=stats&id=$1 [nc,qsa]

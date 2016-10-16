@@ -349,6 +349,72 @@ class Book
         }
     }
 
+    public function getBookStats($returnRaw = false){
+        $exists = $this->getBook(true);
+        if($exists === null || $exists === -1 || $exists === -2){
+            if($returnRaw){
+                return $exists;
+            } else {
+                if($exists === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } elseif($exists === -2){
+                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_EXISTS,
+                        [Settings::JSON_KEY_BOOKS_BOOK_ID, $this->bookId]);
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $borrowedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS,
+            Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
+
+        $borrowedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_BORROWED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            " WHERE ".Settings::KEY_BORROWED_BOOKS_BOOK_ID."=?) as a", [null], "i", [$this->bookId]);
+
+        $returnedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS,
+            Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
+
+        $returnedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            " WHERE ".Settings::KEY_RETURNED_BOOKS_BOOK_ID."=?) as a", [null], "i", [$this->bookId]);
+
+        $isInBookshelf = $this->isInBookshelf();
+
+        $bookshelf = new Bookshelf($this->user, $this);
+        if($isInBookshelf){
+            $bookshelfId = $bookshelf->getBookshelfBook(true);
+            if($bookshelfId === -1 || $bookshelfId === -2 || $bookshelfId === null){
+                $bookshelf = null;
+            } else {
+                $bookshelfId = $bookshelfId[Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID];
+            }
+        } else {
+            $bookshelfId = null;
+        }
+
+        $mysqli->databaseClose();
+
+        $output = [Settings::JSON_KEY_BOOK_STATS_BOOK_ID => $this->bookId];
+        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT] = $borrowedUnique !== -1 ? $borrowedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT] = $borrowedUnique !== -1 ? $borrowedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT] = $returnedGeneral !== -1 ? $returnedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_IN_BOOKSHELF] = $isInBookshelf !== -1 ? $isInBookshelf : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_BOOKSHELF_ID] = $bookshelfId !== -1 ? $bookshelfId : null;
+
+        if($returnRaw){
+            return $output;
+        } else {
+            return json_encode($output);
+        }
+    }
+
     /**
      * Function used to check if provided book title format is valid.
      *

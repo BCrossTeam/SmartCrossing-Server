@@ -133,6 +133,23 @@ function handleBook(){
     $book = new Book($user);
 
     switch ($_GET["action"]){
+        case "stats":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $book->setBookId($_GET["id"]);
+                        return $book->getBookStats();
+                    } else {
+                        return "No book selected";
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":
@@ -190,6 +207,15 @@ function handleBookshelf(){
     switch ($_GET["action"]){
         case "book":
             switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $bookshelf->setBookshelfId($_GET["id"]);
+                        return $bookshelf->getBooksInBookshelf();
+                    } else {
+                        return "No bookshelf selected";
+                    }
+                    break;
+
                 case "POST":
                     if (isset($_GET["id"])) {
                         if(isset($_GET["book_id"])) {
