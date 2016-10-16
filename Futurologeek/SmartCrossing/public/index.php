@@ -195,6 +195,9 @@ function handleBook(){
                             $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
                                 ? $json[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
 
+                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
+                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
+
                             $book->setBookCategory(isset($json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
                                 ? $json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);
 
@@ -258,6 +261,9 @@ function handleBookshelf(){
 
                             $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
                                 ? $json[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
+
+                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
+                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
 
                             $book->setBookCategory(isset($json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
                                 ? $json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);

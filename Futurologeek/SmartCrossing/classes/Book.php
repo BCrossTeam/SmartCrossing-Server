@@ -236,10 +236,10 @@ class Book
 
         $this->user->setUserId($result[0][0]);
         $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKS,
-            [Settings::KEY_BOOKS_BOOK_TITLE, Settings::KEY_BOOKS_BOOK_AUTHOR, Settings::KEY_BOOKS_BOOK_ISBN
-                , Settings::KEY_BOOKS_BOOK_CATEGORY, Settings::KEY_BOOKS_BOOK_USER_AUTHOR],
-            "ssssi",
-            [$this->bookTitle, $this->bookAuthor, $this->bookIsbn, $this->bookCategory, $this->user->getUserId()]);
+            [Settings::KEY_BOOKS_BOOK_TITLE, Settings::KEY_BOOKS_BOOK_AUTHOR, Settings::KEY_BOOKS_BOOK_ISBN,
+                Settings::KEY_BOOKS_BOOK_PUBLICATION_DATE, Settings::KEY_BOOKS_BOOK_CATEGORY,
+                Settings::KEY_BOOKS_BOOK_USER_AUTHOR], "ssssi", [$this->bookTitle, $this->bookAuthor, $this->bookIsbn,
+                $this->bookPublicationDate, $this->bookCategory, $this->user->getUserId()]);
 
         if($returnRaw){
             if($result == -1){
