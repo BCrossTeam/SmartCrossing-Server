@@ -334,7 +334,7 @@ function handleBookshelf(){
                         $bookshelf->setBookshelfId($_GET["id"]);
                         return $bookshelf->getBookshelf();
                     } else {
-                        return "No bookshelf selected";
+                        return Bookshelf::getBookshelfList();
                     }
                     break;
 

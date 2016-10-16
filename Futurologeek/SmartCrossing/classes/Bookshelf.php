@@ -942,6 +942,70 @@ class Bookshelf
             return json_encode($output);
         }
     }
+
+    public static function getBookshelfList($returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELVES, 
+            [Settings::KEY_BOOKSHELVES_BOOKSHELF_ID, Settings::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE,
+                Settings::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE, Settings::KEY_BOOKSHELVES_BOOKSHELF_NAME]);
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                $mysqli->databaseClose();
+                return $result;
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_LIST => []];
+                foreach ($result as $item) {
+                    $temp_books = [];
+                    $books = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS,
+                        [Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID], Settings::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID."=?", "i", [$item[0]]);
+                    if($books !== -1 && $books !== null){
+                        foreach ($books as $book){
+                            $temp_books[] = [Settings::JSON_KEY_BOOKS_BOOK_ID => $book[0]];
+                        }
+                    }
+
+                    $output[Settings::JSON_KEY_BOOKSHELF_LIST][] = [
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID => $item[0],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME => $item[3],
+                        Settings::JSON_KEY_BOOKS_LIST => $temp_books
+                    ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else if($result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS);
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_LIST => []];
+                foreach ($result as $item) {
+                    $temp_books = [];
+                    $books = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS,
+                        [Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID], Settings::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID."=?", "i", [$item[0]]);
+                    if($books !== -1 && $books !== null){
+                        foreach ($books as $book){
+                            $temp_books[] = [Settings::JSON_KEY_BOOKS_BOOK_ID => $book[0]];
+                        }
+                    }
+
+                    $output[Settings::JSON_KEY_BOOKSHELF_LIST][] = [
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_ID => $item[0],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME => $item[3],
+                        Settings::JSON_KEY_BOOKS_LIST => $temp_books
+                    ];
+                }
+                return json_encode($output);
+            }
+        }
+    }
+
     /**
      * Function used to check if provided bookshelf coordinates format is valid.
      *

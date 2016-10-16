@@ -143,6 +143,9 @@ class Settings
 
     const JSON_KEY_BOOKSHELVES_STATS_GLOBAL_BOOKSHELF_COUNT     = "bookshelf_global_count";
 
+    const JSON_KEY_BOOKSHELF_LIST                               = "bookshelves";
+    const JSON_KEY_BOOKS_LIST                                   = "books";
+
     const JSON_KEY_USERS_USER_ID                    = self::KEY_USERS_USER_ID;
     const JSON_KEY_USERS_USER_EMAIL                 = self::KEY_USERS_USER_EMAIL;
     const JSON_KEY_USERS_USER_PASSWORD              = self::KEY_USERS_USER_PASSWORD;
