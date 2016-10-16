@@ -78,6 +78,7 @@ class Settings
     const KEY_BOOKS_BOOK_TITLE                  = "book_title";
     const KEY_BOOKS_BOOK_AUTHOR                 = "book_author";
     const KEY_BOOKS_BOOK_ISBN                   = "book_isbn";
+    const KEY_BOOKS_BOOK_PUBLICATION_DATE       = "book_publication_date";
     const KEY_BOOKS_BOOK_CATEGORY               = "book_category";
     const KEY_BOOKS_BOOK_COVER                  = "book_cover";
     const KEY_BOOKS_BOOK_USER_AUTHOR            = "book_user_author";
@@ -162,6 +163,7 @@ class Settings
     const JSON_KEY_BOOKS_BOOK_TITLE                 = self::KEY_BOOKS_BOOK_TITLE;
     const JSON_KEY_BOOKS_BOOK_AUTHOR                = self::KEY_BOOKS_BOOK_AUTHOR;
     const JSON_KEY_BOOKS_BOOK_ISBN                  = self::KEY_BOOKS_BOOK_ISBN;
+    const JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE      = self::KEY_BOOKS_BOOK_PUBLICATION_DATE;
     const JSON_KEY_BOOKS_BOOK_CATEGORY              = self::KEY_BOOKS_BOOK_CATEGORY;
     const JSON_KEY_BOOKS_BOOK_COVER                 = self::KEY_BOOKS_BOOK_COVER;
     const JSON_KEY_BOOKS_BOOK_USER_AUTHOR           = self::KEY_BOOKS_BOOK_USER_AUTHOR;

@@ -32,6 +32,8 @@ class Book
     private $bookAuthor;
     /** @var string */
     private $bookIsbn;
+    /** @var string */
+    private $bookPublicationDate;
     /**
      * Requires BOOK_CATEGORY_... constant as value.
      * @var string
@@ -98,6 +100,18 @@ class Book
     public function setBookIsbn($bookIsbn)
     {
         $this->bookIsbn = $bookIsbn;
+    }
+
+    /** @return string */
+    public function getBookPublicationDate()
+    {
+        return $this->bookPublicationDate;
+    }
+
+    /** @param string $bookPublicationDate */
+    public function setBookPublicationDate($bookPublicationDate)
+    {
+        $this->bookPublicationDate = $bookPublicationDate;
     }
 
     /** @return string */
@@ -303,8 +317,8 @@ class Book
             $mysqli->databaseConnect();
             $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKS,
                 [Settings::KEY_BOOKS_BOOK_TITLE, Settings::KEY_BOOKS_BOOK_AUTHOR, Settings::KEY_BOOKS_BOOK_ISBN,
-                    Settings::KEY_BOOKS_BOOK_CATEGORY, Settings::KEY_BOOKS_BOOK_COVER,
-                    Settings::KEY_BOOKS_BOOK_USER_AUTHOR],
+                    Settings::KEY_BOOKS_BOOK_PUBLICATION_DATE, Settings::KEY_BOOKS_BOOK_CATEGORY,
+                    Settings::KEY_BOOKS_BOOK_COVER, Settings::KEY_BOOKS_BOOK_USER_AUTHOR],
                 Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
             $mysqli->databaseClose();
 
@@ -317,9 +331,10 @@ class Book
                         Settings::JSON_KEY_BOOKS_BOOK_TITLE => $result[0][0],
                         Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $result[0][1],
                         Settings::JSON_KEY_BOOKS_BOOK_ISBN => $result[0][2],
-                        Settings::JSON_KEY_BOOKS_BOOK_CATEGORY => $result[0][3],
-                        Settings::JSON_KEY_BOOKS_BOOK_COVER => $result[0][4],
-                        Settings::JSON_KEY_BOOKS_BOOK_USER_AUTHOR => $result[0][5]
+                        Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE => $result[0][3],
+                        Settings::JSON_KEY_BOOKS_BOOK_CATEGORY => $result[0][4],
+                        Settings::JSON_KEY_BOOKS_BOOK_COVER => $result[0][5],
+                        Settings::JSON_KEY_BOOKS_BOOK_USER_AUTHOR => $result[0][6]
                     ];
                 }
             } else {
