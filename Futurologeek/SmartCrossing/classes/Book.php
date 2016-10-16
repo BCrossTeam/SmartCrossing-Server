@@ -368,8 +368,9 @@ class Book
 
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
+
         $borrowedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS,
-            Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
+            Settings::KEY_BORROWED_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
 
         $borrowedUnique = $mysqli->databaseRawQuery(
             "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
@@ -377,7 +378,7 @@ class Book
             " WHERE ".Settings::KEY_BORROWED_BOOKS_BOOK_ID."=?) as a", [null], "i", [$this->bookId]);
 
         $returnedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS,
-            Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
+            Settings::KEY_RETURNED_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
 
         $returnedUnique = $mysqli->databaseRawQuery(
             "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
@@ -407,6 +408,40 @@ class Book
         $output[Settings::JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
         $output[Settings::JSON_KEY_BOOK_STATS_IN_BOOKSHELF] = $isInBookshelf !== -1 ? $isInBookshelf : null;
         $output[Settings::JSON_KEY_BOOK_STATS_BOOKSHELF_ID] = $bookshelfId !== -1 ? $bookshelfId : null;
+
+        if($returnRaw){
+            return $output;
+        } else {
+            return json_encode($output);
+        }
+    }
+
+    public static function getGlobalBookStats($returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $booksCount = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKS);
+        $inBookshelf = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS);
+        $borrowedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS);
+        $borrowedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_BORROWED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            ") as a", [null]);
+        $returnedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS);
+        $returnedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            ") as a", [null]);
+
+        $mysqli->databaseClose();
+
+        $output = [];
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_BOOK_COUNT] = $booksCount !== -1 ? $booksCount : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_IN_BOOKSHELVES_COUNT] = $inBookshelf !== -1 ? $inBookshelf : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_BORROW_GENERAL_COUNT] = $borrowedGeneral !== -1 ? $borrowedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_BORROW_UNIQUE_COUNT] = $borrowedUnique !== -1 ? $borrowedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_RETURN_GENERAL_COUNT] = $returnedGeneral !== -1 ? $returnedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
 
         if($returnRaw){
             return $output;

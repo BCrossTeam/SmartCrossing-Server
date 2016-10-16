@@ -451,6 +451,83 @@ class User
         }
     }
 
+    public function getUserStats($returnRaw = false){
+        $exists = $this->getUser(true);
+        if($exists === null || $exists === -1 || $exists === -2){
+            if($returnRaw){
+                return $exists;
+            } else {
+                if($exists === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } elseif($exists === -2){
+                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                        [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $userScore = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SCORE],
+            Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
+
+        $addedBooks = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKS,
+            Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?", "i", [$this->userId]);
+
+        $borrowedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS,
+            Settings::KEY_BORROWED_BOOKS_USER_ID."=?", "i", [$this->userId]);
+
+        $borrowedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_BORROWED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            " WHERE ".Settings::KEY_BORROWED_BOOKS_USER_ID."=?) as a", [null], "i", [$this->userId]);
+
+        $returnedGeneral = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS,
+            Settings::KEY_RETURNED_BOOKS_USER_ID."=?", "i", [$this->userId]);
+
+        $returnedUnique = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            " WHERE ".Settings::KEY_RETURNED_BOOKS_USER_ID."=?) as a", [null], "i", [$this->userId]);
+
+        $mysqli->databaseClose();
+
+        $output = [Settings::JSON_KEY_USER_STATS_USER_ID => $this->userId];
+        $output[Settings::JSON_KEY_USER_STATS_USER_SCORE] = $userScore !== -1 ? $userScore[0][0] : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT] = $addedBooks !== -1 ? $addedBooks : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT] = $borrowedGeneral !== -1 ? $borrowedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT] = $borrowedUnique !== -1 ? $borrowedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT] = $returnedGeneral !== -1 ? $returnedGeneral : null;
+        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
+
+        if($returnRaw){
+            return $output;
+        } else {
+            return json_encode($output);
+        }
+    }
+
+    public static function getGlobalUserStats($returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $usersCount = $mysqli->databaseCount(Settings::DATABASE_TABLE_USERS);
+
+        $mysqli->databaseClose();
+
+        $output = [];
+        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_USERS_COUNT] = $usersCount !== -1 ? $usersCount : null;
+
+        if($returnRaw){
+            return $output;
+        } else {
+            return json_encode($output);
+        }
+    }
+
     /* Statics */
     /**
      * Function used to check if provided email address format is valid.

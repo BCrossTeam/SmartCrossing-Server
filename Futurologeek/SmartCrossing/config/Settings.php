@@ -107,16 +107,40 @@ class Settings
     const JSON_KEY_SUB_ERROR                    = "sub_error";
     const JSON_KEY_ERROR_MSG                    = "error_msg";
 
-    const JSON_KEY_BOOK_STATS_BOOK_ID               = "book_id";
-    const JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT  = "book_borrow_count";
-    const JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT   = "book_unique_borrow_count";
-    const JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT  = "book_return_count";
-    const JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT   = "book_unique_return_count";
-    const JSON_KEY_BOOK_STATS_IN_BOOKSHELF          = "book_in_bookshelf";
-    const JSON_KEY_BOOK_STATS_BOOKSHELF_ID          = "book_bookshelf_id";
+    const JSON_KEY_USER_STATS_USER_ID                           = "user_id";
+    const JSON_KEY_USER_STATS_USER_SCORE                        = "user_score";
+    const JSON_KEY_USER_STATS_BOOKS_ADDED_COUNT                 = "user_books_added_count";
+    const JSON_KEY_USER_STATS_BORROW_GENERAL_COUNT              = "user_borrow_count";
+    const JSON_KEY_USER_STATS_BORROW_UNIQUE_COUNT               = "user_unique_borrow_count";
+    const JSON_KEY_USER_STATS_RETURN_GENERAL_COUNT              = "user_return_count";
+    const JSON_KEY_USER_STATS_RETURN_UNIQUE_COUNT               = "user_unique_return_count";
 
-    const JSON_KEY_BOOKSHELF_STATS_BOOKSHELF_ID     = "bookshelf_id";
-    const JSON_KEY_BOOKSHELF_STATS_BOOKS            = "bookshelf_books";
+    const JSON_KEY_BOOK_STATS_GLOBAL_USERS_COUNT                = "user_global_count";
+
+    const JSON_KEY_BOOK_STATS_BOOK_ID                           = "book_id";
+    const JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT              = "book_borrow_count";
+    const JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT               = "book_unique_borrow_count";
+    const JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT              = "book_return_count";
+    const JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT               = "book_unique_return_count";
+    const JSON_KEY_BOOK_STATS_IN_BOOKSHELF                      = "book_in_bookshelf";
+    const JSON_KEY_BOOK_STATS_BOOKSHELF_ID                      = "book_bookshelf_id";
+
+    const JSON_KEY_BOOK_STATS_GLOBAL_BOOK_COUNT                 = "book_global_count";
+    const JSON_KEY_BOOK_STATS_GLOBAL_IN_BOOKSHELVES_COUNT       = "book_global_in_bookshelves_count";
+    const JSON_KEY_BOOK_STATS_GLOBAL_BORROW_GENERAL_COUNT       = "book_global_borrow_count";
+    const JSON_KEY_BOOK_STATS_GLOBAL_BORROW_UNIQUE_COUNT        = "book_global_unique_borrow_count";
+    const JSON_KEY_BOOK_STATS_GLOBAL_RETURN_GENERAL_COUNT       = "book_global_return_count";
+    const JSON_KEY_BOOK_STATS_GLOBAL_RETURN_UNIQUE_COUNT        = "book_global_unique_return_count";
+
+    const JSON_KEY_BOOKSHELF_STATS_BOOKSHELF_ID                 = "bookshelf_id";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS                        = "bookshelf_books";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS_COUNT                  = "bookshelf_books_count";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS_BORROW_GENERAL_COUNT   = "bookshelf_books_borrow_general_count";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS_BORROW_UNIQUE_COUNT    = "bookshelf_books_borrow_unique_count";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS_RETURN_GENERAL_COUNT   = "bookshelf_books_return_general_count";
+    const JSON_KEY_BOOKSHELF_STATS_BOOKS_RETURN_UNIQUE_COUNT    = "bookshelf_books_return_unique_count";
+
+    const JSON_KEY_BOOKSHELVES_STATS_GLOBAL_BOOKSHELF_COUNT     = "bookshelf_global_count";
 
     const JSON_KEY_USERS_USER_ID                    = self::KEY_USERS_USER_ID;
     const JSON_KEY_USERS_USER_EMAIL                 = self::KEY_USERS_USER_EMAIL;

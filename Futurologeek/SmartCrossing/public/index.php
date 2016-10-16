@@ -86,6 +86,23 @@ function handleUser(){
             }
             break;
 
+        case "stats":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $user->setUserId($_GET["id"]);
+                        return $user->getUserStats();
+                    } else {
+                        return User::getGlobalUserStats();
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":
@@ -140,7 +157,7 @@ function handleBook(){
                         $book->setBookId($_GET["id"]);
                         return $book->getBookStats();
                     } else {
-                        return "No book selected";
+                        return Book::getGlobalBookStats();
                     }
                     break;
 
@@ -278,6 +295,23 @@ function handleBookshelf(){
                         }
                     } else {
                         return "No bookshelf selected";
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
+        case "stats":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $bookshelf->setBookshelfId($_GET["id"]);
+                        return $bookshelf->getBookshelfStats();
+                    } else {
+                        return Bookshelf::getGlobalBookshelfStats();
                     }
                     break;
 
