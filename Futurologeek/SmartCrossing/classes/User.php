@@ -510,6 +510,46 @@ class User
         }
     }
 
+    public static function getGlobalRanking($buffer = 0, $returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
+            null, null, null, Settings::KEY_USERS_USER_SCORE, true, $buffer);
+        $mysqli->databaseClose();
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                return $result;
+            } else {
+                $output = [];
+                foreach ($result as $item) {
+                    $output[] = [
+                        Settings::JSON_KEY_USERS_USER_ID => $item[0],
+                        Settings::JSON_KEY_USERS_USER_NAME => $item[1],
+                        Settings::JSON_KEY_USERS_USER_SCORE => $item[2]
+                    ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1 || $result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else {
+                $output = [];
+                foreach ($result as $item) {
+                    $output[] = [
+                        Settings::JSON_KEY_USERS_USER_ID => $item[0],
+                        Settings::JSON_KEY_USERS_USER_NAME => $item[1],
+                        Settings::JSON_KEY_USERS_USER_SCORE => $item[2]
+                    ];
+                }
+                return json_encode($output);
+            }
+        }
+    }
+
     public static function getGlobalUserStats($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -519,7 +559,7 @@ class User
         $mysqli->databaseClose();
 
         $output = [];
-        $output[Settings::JSON_KEY_BOOK_STATS_GLOBAL_USERS_COUNT] = $usersCount !== -1 ? $usersCount : null;
+        $output[Settings::JSON_KEY_USER_STATS_GLOBAL_USERS_COUNT] = $usersCount !== -1 ? $usersCount : null;
 
         if($returnRaw){
             return $output;

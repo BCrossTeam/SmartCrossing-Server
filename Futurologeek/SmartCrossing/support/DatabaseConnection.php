@@ -337,20 +337,10 @@ class DatabaseConnection
         }
 
         $query = 'SELECT ' . implode(', ', $selected) . ' FROM '. $table . ($where != null ? (' WHERE ' . $where) : '')
-            . ($order_by != null ? (' ORDER BY ? ' . ($descendant ? ' DESC' : ' ASC')) : '')
+            . ($order_by != null ? (' ORDER BY '. $order_by . ($descendant ? ' DESC' : ' ASC')) : '')
             . ($buffer > 0 ? (' LIMIT 0, ?') : '');
         $stmt = null;
         $output = null;
-
-        if($order_by != null){
-            if($where_variables == null){
-                $where_types = "";
-                $where_variables = array();
-            }
-
-            $where_types .= "s";
-            $where_variables[] = $order_by;
-        }
 
         if($buffer > 0){
             if($where_variables == null){

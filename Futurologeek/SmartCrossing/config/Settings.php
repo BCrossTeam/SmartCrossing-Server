@@ -120,7 +120,7 @@ class Settings
     const JSON_KEY_USER_STATS_RETURN_GENERAL_COUNT              = "user_return_count";
     const JSON_KEY_USER_STATS_RETURN_UNIQUE_COUNT               = "user_unique_return_count";
 
-    const JSON_KEY_BOOK_STATS_GLOBAL_USERS_COUNT                = "user_global_count";
+    const JSON_KEY_USER_STATS_GLOBAL_USERS_COUNT                = "user_global_count";
 
     const JSON_KEY_BOOK_STATS_BOOK_ID                           = "book_id";
     const JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT              = "book_borrow_count";

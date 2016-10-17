@@ -12,6 +12,8 @@ RewriteRule ^user/auth/?$                           public/index.php?class=user&
 RewriteRule ^user/auth/([a-zA-Z0-9]+)/?$            public/index.php?class=user&action=auth&token=$1 [nc,qsa]
 RewriteRule ^user/stats/?$                          public/index.php?class=user&action=stats [nc,qsa]
 RewriteRule ^user/([0-9]+)/stats/?$                 public/index.php?class=user&action=stats&id=$1 [nc,qsa]
+RewriteRule ^user/ranking/?$                        public/index.php?class=user&action=ranking [nc,qsa]
+RewriteRule ^user/ranking/([0-9]+)/?$               public/index.php?class=user&action=ranking&buffer=$1 [nc,qsa]
 
 RewriteRule ^bookshelf/?$                           public/index.php?class=bookshelf&action=none [nc,qsa]
 RewriteRule ^bookshelf/([0-9]+)/?$                  public/index.php?class=bookshelf&action=none&id=$1 [nc,qsa]

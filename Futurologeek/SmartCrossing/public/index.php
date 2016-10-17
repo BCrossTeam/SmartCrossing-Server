@@ -110,6 +110,18 @@ function handleUser($jsonData){
             }
             break;
 
+        case "ranking":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                        return User::getGlobalRanking(isset($_GET["buffer"]) ? $_GET["buffer"] : 0);
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":
