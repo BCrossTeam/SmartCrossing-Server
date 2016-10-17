@@ -12,20 +12,25 @@ use Futurologeek\SmartCrossing\Book as Book;
 use Futurologeek\SmartCrossing\Bookshelf as Bookshelf;
 use Futurologeek\SmartCrossing\Settings as Settings;
 
-$json = json_decode(file_get_contents('php://input'), true);
+$json = null;
+if(file_get_contents("php://input") != null){
+    $json = json_decode(file_get_contents("php://input"), true);
+} else if(isset($_POST["json"]) && $_POST["json"] != null){
+    $json = json_decode($_POST["json"], true);
+}
 
 if(isset($_GET["class"])){
     switch ($_GET["class"]) {
         case "user":
-            echo handleUser();
+            echo handleUser($json);
             break;
 
         case "bookshelf":
-            echo handleBookshelf();
+            echo handleBookshelf($json);
             break;
 
         case "book":
-            echo handleBook();
+            echo handleBook($json);
             break;
 
         default:
@@ -36,19 +41,19 @@ if(isset($_GET["class"])){
     echo "No action";
 }
 
-function handleUser(){
+function handleUser($jsonData){
     $user = new User();
 
     switch ($_GET["action"]){
         case "sign":
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "POST":
-                    if(isset($json) && $json !== null){
-                        $user->setUserEmail(isset($json[Settings::JSON_KEY_USERS_USER_EMAIL])
-                            ? $json[Settings::JSON_KEY_USERS_USER_EMAIL] : null);
+                    if(isset($jsonData) && $jsonData !== null){
+                        $user->setUserEmail(isset($jsonData[Settings::JSON_KEY_USERS_USER_EMAIL])
+                            ? $jsonData[Settings::JSON_KEY_USERS_USER_EMAIL] : null);
 
-                        $user->setUserPassword(isset($json[Settings::JSON_KEY_USERS_USER_PASSWORD])
-                            ? $json[Settings::JSON_KEY_USERS_USER_PASSWORD] : null);
+                        $user->setUserPassword(isset($jsonData[Settings::JSON_KEY_USERS_USER_PASSWORD])
+                            ? $jsonData[Settings::JSON_KEY_USERS_USER_PASSWORD] : null);
 
                         return $user->signIn();
                     } else {
@@ -120,15 +125,15 @@ function handleUser(){
                     if (isset($_GET["id"])) {
                         return "Invalid method";
                     } else {
-                        if(isset($json) && $json !== null){
-                            $user->setUserEmail(isset($json[Settings::JSON_KEY_USERS_USER_EMAIL])
-                                ? $json[Settings::JSON_KEY_USERS_USER_EMAIL] : null);
+                        if(isset($jsonData) && $jsonData !== null){
+                            $user->setUserEmail(isset($jsonData[Settings::JSON_KEY_USERS_USER_EMAIL])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_EMAIL] : null);
 
-                            $user->setUserName(isset($json[Settings::JSON_KEY_USERS_USER_NAME])
-                                ? $json[Settings::JSON_KEY_USERS_USER_NAME] : null);
+                            $user->setUserName(isset($jsonData[Settings::JSON_KEY_USERS_USER_NAME])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_NAME] : null);
 
-                            $user->setUserPassword(isset($json[Settings::JSON_KEY_USERS_USER_PASSWORD])
-                                ? $json[Settings::JSON_KEY_USERS_USER_PASSWORD] : null);
+                            $user->setUserPassword(isset($jsonData[Settings::JSON_KEY_USERS_USER_PASSWORD])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_PASSWORD] : null);
 
                             return $user->signUp();
                         } else {
@@ -146,10 +151,10 @@ function handleUser(){
     }
 }
 
-function handleBook(){
+function handleBook($jsonData){
     $user = new User();
     if(isset($_GET["token"])) { $user->setUserAuthToken($_GET["token"]); }
-    $book = new Book($user);
+    if(isset($_FILES["uploaded"])) { $book = new Book($user, $_FILES["uploaded"]); } else { $book = new Book($user);}
 
     switch ($_GET["action"]){
         case "stats":
@@ -184,24 +189,24 @@ function handleBook(){
                     if (isset($_GET["id"])) {
                         return "Invalid method";
                     } else {
-                        if(isset($json) && $json !== null){
-                            $user->setUserAuthToken(isset($json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
-                                ? $json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                        if(isset($jsonData) && $jsonData !== null){
+                            $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
 
-                            $book->setBookTitle(isset($json[Settings::JSON_KEY_BOOKS_BOOK_TITLE])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_TITLE] : null);
+                            $book->setBookTitle(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_TITLE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_TITLE] : null);
 
-                            $book->setBookAuthor(isset($json[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR] : null);
+                            $book->setBookAuthor(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR] : null);
 
-                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
+                            $book->setBookIsbn(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
 
-                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
+                            $book->setBookPublicationDate(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
 
-                            $book->setBookCategory(isset($json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);
+                            $book->setBookCategory(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);
 
                             return $book->addBook();
                         } else {
@@ -219,10 +224,10 @@ function handleBook(){
     }
 }
 
-function handleBookshelf(){
+function handleBookshelf($jsonData){
     $user = new User();
     if(isset($_GET["token"])) { $user->setUserAuthToken($_GET["token"]); }
-    $book = new Book($user);
+    if(isset($_FILES["uploaded"])) { $book = new Book($user, $_FILES["uploaded"]); } else { $book = new Book($user);}
     if(isset($_GET["book_id"])){ $book->setBookId($_GET["book_id"]); }
     $bookshelf = new Bookshelf($user, $book);
 
@@ -242,9 +247,9 @@ function handleBookshelf(){
                     if (isset($_GET["id"])) {
                         if(isset($_GET["book_id"])) {
                             $bookshelf->setBookshelfId($_GET["id"]);
-                            if(isset($json) && $json !== null){
-                                $user->setUserAuthToken(isset($json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
-                                    ? $json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                            if(isset($jsonData) && $jsonData !== null){
+                                $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                    ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
 
                                 return $bookshelf->returnBook();
                             } else {
@@ -252,23 +257,23 @@ function handleBookshelf(){
                             }
                         } else {
                             $bookshelf->setBookshelfId($_GET["id"]);
-                            $user->setUserAuthToken(isset($json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
-                                ? $json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                            $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
 
-                            $book->setBookTitle(isset($json[Settings::JSON_KEY_BOOKS_BOOK_TITLE])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_TITLE] : null);
+                            $book->setBookTitle(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_TITLE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_TITLE] : null);
 
-                            $book->setBookAuthor(isset($json[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR] : null);
+                            $book->setBookAuthor(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_AUTHOR] : null);
 
-                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
+                            $book->setBookIsbn(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_ISBN])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_ISBN] : null);
 
-                            $book->setBookIsbn(isset($json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
+                            $book->setBookPublicationDate(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE] : null);
 
-                            $book->setBookCategory(isset($json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
-                                ? $json[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);
+                            $book->setBookCategory(isset($jsonData[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY])
+                                ? $jsonData[Settings::JSON_KEY_BOOKS_BOOK_CATEGORY] : null);
 
                             $result = $book->addBook(true);
                             if(is_int($result)){
@@ -293,9 +298,9 @@ function handleBookshelf(){
                 case "DELETE":
                     if (isset($_GET["id"])) {
                         $bookshelf->setBookshelfId($_GET["id"]);
-                        if(isset($json) && $json !== null){
-                            $user->setUserAuthToken(isset($json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
-                                ? $json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                        if(isset($jsonData) && $jsonData !== null){
+                            $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
 
                             return $bookshelf->borrowBook();
                         } else {
@@ -344,18 +349,18 @@ function handleBookshelf(){
                     if (isset($_GET["id"])) {
                         return "Invalid method";
                     } else {
-                        if(isset($json) && $json !== null){
-                            $user->setUserAuthToken(isset($json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
-                                ? $json[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                        if(isset($jsonData) && $jsonData !== null){
+                            $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
 
-                            $bookshelf->setBookshelfLatitude(isset($json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE])
-                                ? $json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE] : null);
+                            $bookshelf->setBookshelfLatitude(isset($jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE] : null);
 
-                            $bookshelf->setBookshelfLongitude(isset($json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE])
-                                ? $json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE] : null);
+                            $bookshelf->setBookshelfLongitude(isset($jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE])
+                                ? $jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE] : null);
 
-                            $bookshelf->setBookshelfName(isset($json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME])
-                                ? $json[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME] : null);
+                            $bookshelf->setBookshelfName(isset($jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME])
+                                ? $jsonData[Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME] : null);
 
                             return $bookshelf->addBookshelf();
                         } else {

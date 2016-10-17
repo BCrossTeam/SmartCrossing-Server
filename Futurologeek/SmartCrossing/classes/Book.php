@@ -44,14 +44,19 @@ class Book
     /** @var int */
     private $bookUserAuthor;
 
-    /*** @var User */
+    /** @var User */
     private $user;
+    private $coverFile;
 
 
-    /** @param User $user */
-    public function __construct(&$user)
+    /**
+     * @param User $user
+     * @param $coverFile
+     */
+    public function __construct(&$user, &$coverFile = null)
     {
         $this->user = $user;
+        $this->coverFile = $coverFile;
     }
 
     /** @return int */
@@ -184,6 +189,7 @@ class Book
      * If $returnRaw is true:
      * -1 on mysql error
      * -2 on authentication error or invalid input
+     * -3 on file upload error
      * array on success
      *
      * If $returnRaw is false:
@@ -197,7 +203,14 @@ class Book
         if(($temp = self::verifyBookAuthor($this->bookAuthor)) !== true){ return $temp; }
         if(($temp = self::verifyBookIsbn($this->bookIsbn)) !== true){ return $temp; }
         if(($temp = self::verifyBookCategory($this->bookCategory)) !== true){ return $temp; }
-        //if(($temp = self::verifyBookCover($this->bookCover)) !== true){ return $temp; }
+
+        if($this->coverFile != null && !Support::verifyFileValidity($this->coverFile)){
+            if($returnRaw){
+                return -3;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+            }
+        }
 
         $auth = $this->user->signAuth(true);
         if($returnRaw){
@@ -238,35 +251,55 @@ class Book
         $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKS,
             [Settings::KEY_BOOKS_BOOK_TITLE, Settings::KEY_BOOKS_BOOK_AUTHOR, Settings::KEY_BOOKS_BOOK_ISBN,
                 Settings::KEY_BOOKS_BOOK_PUBLICATION_DATE, Settings::KEY_BOOKS_BOOK_CATEGORY,
-                Settings::KEY_BOOKS_BOOK_USER_AUTHOR], "ssssi", [$this->bookTitle, $this->bookAuthor, $this->bookIsbn,
+                Settings::KEY_BOOKS_BOOK_USER_AUTHOR], "sssisi", [$this->bookTitle, $this->bookAuthor, $this->bookIsbn,
                 $this->bookPublicationDate, $this->bookCategory, $this->user->getUserId()]);
 
-        if($returnRaw){
-            if($result == -1){
+        if($result == -1){
+            if($returnRaw){
                 return -1;
             } else {
-                $this->bookId = $result;
-                $data = [Settings::JSON_KEY_SUCCESS => Settings::SUCCESS_BOOK_ADDED];
-                $book = $this->getBook(true);
-                if($book != null) {
-                    foreach ($book as $key => $value){
-                        $data[$key] = $value;
-                    }
-                }
-                return $data;
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
             }
         } else {
-            if($result == -1){
-                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
-            } else {
-                $this->bookId = $result;
-                $data = [];
-                $book = $this->getBook(true);
-                if($book != null) {
-                    foreach ($book as $key => $value){
-                        $data[] = [$key, $value];
-                    }
+            $this->bookId = $result;
+            $data = [[Settings::JSON_KEY_SUCCESS, Settings::SUCCESS_BOOK_ADDED]];
+
+            $this->bookCover = Support::generateCoverFileName($this->bookId, $this->coverFile);
+            if(!move_uploaded_file($this->coverFile['tmp_name'], Settings::COVER_DIRECTORY_PATH.$this->bookCover)){
+                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
+                    [$this->bookId]);
+                if($returnRaw){
+                    return -3;
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
                 }
+            }
+
+            $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_BOOKS, [Settings::KEY_BOOKS_BOOK_COVER], "s",
+                    [$this->bookCover], Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
+
+
+            if($result < 0){
+                unlink(Settings::COVER_DIRECTORY_PATH.$this->bookCover);
+                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
+                    [$this->bookId]);
+                if($returnRaw){
+                    return -3;
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+                }
+            }
+
+            $book = $this->getBook(true);
+            if($book != null) {
+                foreach ($book as $key => $value){
+                    $data[] = [$key, $value];
+                }
+            }
+
+            if($returnRaw){
+                return $data;
+            } else {
                 return Settings::buildSuccessMessage(Settings::SUCCESS_BOOK_ADDED, ...$data);
             }
         }
@@ -326,7 +359,7 @@ class Book
                 if($result === -1 || $result === null){
                     return $result;
                 } else {
-                    return [
+                    $output = [
                         Settings::JSON_KEY_BOOKS_BOOK_ID => $this->bookId,
                         Settings::JSON_KEY_BOOKS_BOOK_TITLE => $result[0][0],
                         Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $result[0][1],
@@ -336,6 +369,13 @@ class Book
                         Settings::JSON_KEY_BOOKS_BOOK_COVER => $result[0][5],
                         Settings::JSON_KEY_BOOKS_BOOK_USER_AUTHOR => $result[0][6]
                     ];
+
+                    if($result[0][5]){
+                        $output[Settings::JSON_KEY_BOOKS_BOOK_COVER_HTTP] = Settings::COVER_HTTP_PATH.$result[0][5];
+                        $output[Settings::JSON_KEY_BOOKS_BOOK_COVER_HTTPS] = Settings::COVER_HTTPS_PATH.$result[0][5];
+                    }
+
+                    return $output;
                 }
             } else {
                 if($result === -1){
@@ -344,15 +384,23 @@ class Book
                     return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_EXISTS,
                         [Settings::JSON_KEY_BOOKS_BOOK_ID, $this->bookId]);
                 } else {
-                    return json_encode([
+                    $output = [
                         Settings::JSON_KEY_BOOKS_BOOK_ID => $this->bookId,
                         Settings::JSON_KEY_BOOKS_BOOK_TITLE => $result[0][0],
                         Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $result[0][1],
                         Settings::JSON_KEY_BOOKS_BOOK_ISBN => $result[0][2],
-                        Settings::JSON_KEY_BOOKS_BOOK_CATEGORY => $result[0][3],
-                        Settings::JSON_KEY_BOOKS_BOOK_COVER => $result[0][4],
-                        Settings::JSON_KEY_BOOKS_BOOK_USER_AUTHOR => $result[0][5]
-                    ]);
+                        Settings::JSON_KEY_BOOKS_BOOK_PUBLICATION_DATE => $result[0][3],
+                        Settings::JSON_KEY_BOOKS_BOOK_CATEGORY => $result[0][4],
+                        Settings::JSON_KEY_BOOKS_BOOK_COVER => $result[0][5],
+                        Settings::JSON_KEY_BOOKS_BOOK_USER_AUTHOR => $result[0][6]
+                    ];
+
+                    if($result[0][5]){
+                        $output[Settings::JSON_KEY_BOOKS_BOOK_COVER_HTTP] = Settings::COVER_HTTP_PATH.$result[0][5];
+                        $output[Settings::JSON_KEY_BOOKS_BOOK_COVER_HTTPS] = Settings::COVER_HTTPS_PATH.$result[0][5];
+                    }
+
+                    return json_encode($output);
                 }
             }
         } else {

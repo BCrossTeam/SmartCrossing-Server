@@ -7,6 +7,9 @@ class Settings
 {
     /* Debug */
     const DEBUG = false;
+    const COVER_DIRECTORY_PATH = "/var/www/html/static/";
+    const COVER_HTTP_PATH = "http://static.smartcrossing.pl/";
+    const COVER_HTTPS_PATH = "https://static.smartcrossing.pl/";
 
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
@@ -33,6 +36,7 @@ class Settings
     const ERROR_BOOK_NOT_IN_BOOKSHELF           = 13;
     const ERROR_CANNOT_BORROW_BOOK              = 14;
     const ERROR_CANNOT_RETURN_BOOK              = 15;
+    const ERROR_UPLOAD_ERROR                    = 16;
 
     const SUB_ERROR_USER_EMAIL_ADDRESS          = 1;
     const SUB_ERROR_USER_NAME                   = 2;
@@ -170,6 +174,8 @@ class Settings
     const JSON_KEY_BOOKS_BOOK_CATEGORY              = self::KEY_BOOKS_BOOK_CATEGORY;
     const JSON_KEY_BOOKS_BOOK_COVER                 = self::KEY_BOOKS_BOOK_COVER;
     const JSON_KEY_BOOKS_BOOK_USER_AUTHOR           = self::KEY_BOOKS_BOOK_USER_AUTHOR;
+    const JSON_KEY_BOOKS_BOOK_COVER_HTTP            = self::KEY_BOOKS_BOOK_COVER."_http";
+    const JSON_KEY_BOOKS_BOOK_COVER_HTTPS           = self::KEY_BOOKS_BOOK_COVER."_https";
 
     const JSON_KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID   = self::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID;
     const JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ID        = self::KEY_BOOKSHELVES_BOOKS_BOOK_ID;

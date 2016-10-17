@@ -33,7 +33,7 @@ CREATE TABLE `books` (
   `book_isbn` char(13) COLLATE utf8_unicode_ci NOT NULL,
   `book_publication_date` SMALLINT NOT NULL,
   `book_category` enum('fic','bio','bai','ckg','his','com','cst','kds','pls','law','rel','rom','sfi','hlt') COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'fiction, biographies, business and investments, cooking, history, computers, crime stories, kids, politics, law, religion, romance, sci-fi, health',
-  `book_cover` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+  `book_cover` varchar(100) COLLATE utf8_unicode_ci NULL DEFAULT NULL,
   `book_user_author` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
