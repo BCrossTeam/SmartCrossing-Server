@@ -122,33 +122,55 @@ class Bookshelf
             return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
         } else if($result === null || count($result) <= 0) {
             return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
-        } else {
-            $this->user->setUserId($result[0][0]);
-            $this->user->setUserAccountType($result[0][1]);
+        }
 
-            if($result[0][1] != User::USER_ACCOUNT_TYPE_ADMIN && $result[0][1] != User::USER_ACCOUNT_TYPE_MODERATOR){
-                return Settings::buildErrorMessage(Settings::ERROR_PERMISSION_DENIED);
-            }
+        $this->user->setUserId($result[0][0]);
+        $this->user->setUserAccountType($result[0][1]);
 
+        $hasAddPermission = $result[0][1] == User::USER_ACCOUNT_TYPE_ADMIN && $result[0][1] == User::USER_ACCOUNT_TYPE_MODERATOR;
+        if($hasAddPermission){
             $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELVES,
                 [Settings::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE, Settings::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE,
                     Settings::KEY_BOOKSHELVES_BOOKSHELF_NAME, Settings::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR],
                 "ddsi",
                 [$this->bookshelfLatitude, $this->bookshelfLongitude, $this->bookshelfName, $this->user->getUserId()]);
+        } else {
+            $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME],
+                "ddsis",
+                [$this->bookshelfLatitude, $this->bookshelfLongitude, $this->bookshelfName, $this->user->getUserId(),
+                    date_create(null, new \DateTimeZone("UTC"))->modify(Settings::BOOKSHELF_REQUEST_VOTE_TIME)
+                        ->format('Y-m-d H:i:s')]);
         }
 
         if($result == -1){
             return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
         } else {
             $this->bookshelfId = $result;
-            $data = [];
-            $bookshelf = $this->getBookshelf(true);
-            if($bookshelf != null && !is_int($bookshelf)) {
-                foreach ($bookshelf as $key => $value){
-                    $data[] = [$key, $value];
+            if($hasAddPermission){
+                $data = [];
+                $bookshelf = $this->getBookshelf(true);
+                if($bookshelf != null && !is_int($bookshelf)) {
+                    foreach ($bookshelf as $key => $value){
+                        $data[] = [$key, $value];
+                    }
                 }
+                return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_ADDED, ...$data);
+            } else {
+                $data = [];
+                $bookshelf = $this->getBookshelfRequest(true);
+                if($bookshelf != null && !is_int($bookshelf)) {
+                    foreach ($bookshelf as $key => $value){
+                        $data[] = [$key, $value];
+                    }
+                }
+                return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUEST_ADDED, ...$data);
             }
-            return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_ADDED, ...$data);
+
         }
     }
 
@@ -700,6 +722,58 @@ class Bookshelf
                         Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE => $result[0][1],
                         Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME => $result[0][2],
                         Settings::JSON_KEY_BOOKSHELVES_BOOKSHELF_AUTHOR => $result[0][3]
+                    ]);
+                }
+            }
+        } else {
+            if($returnRaw){
+                return -2;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+            }
+        }
+    }
+
+    public function getBookshelfRequest($returnRaw = false){
+        if($this->bookshelfId > 0){
+            $mysqli = new DatabaseConnection();
+            $mysqli->databaseConnect();
+            $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME],
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID."=?", "i", [$this->bookshelfId]);
+            $mysqli->databaseClose();
+
+            if($returnRaw){
+                if($result === -1 || $result === null){
+                    return $result;
+                } else {
+                    return [
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $this->bookshelfId,
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $result[0][0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $result[0][1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $result[0][2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $result[0][3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $result[0][4]
+                    ];
+                }
+            } else {
+                if($result === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } else if($result === null){
+                    return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_REQUEST_NOT_EXISTS,
+                        [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID, $this->bookshelfId]);
+                } else {
+                    return json_encode([
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $this->bookshelfId,
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $result[0][0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $result[0][1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $result[0][2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $result[0][3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $result[0][4]
                     ]);
                 }
             }

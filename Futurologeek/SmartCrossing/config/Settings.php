@@ -11,6 +11,9 @@ class Settings
     const COVER_HTTP_PATH = "http://static.smartcrossing.pl/";
     const COVER_HTTPS_PATH = "https://static.smartcrossing.pl/";
 
+    /* Bookshelf Requests */
+    const BOOKSHELF_REQUEST_VOTE_TIME = "+ 2 day";
+
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
     const CHARACTERS_LETTERS_UPPERCASE          = "ABCDEFGHIJKLMNOPQRSTUVDXYZ";
@@ -37,6 +40,7 @@ class Settings
     const ERROR_CANNOT_BORROW_BOOK              = 14;
     const ERROR_CANNOT_RETURN_BOOK              = 15;
     const ERROR_UPLOAD_ERROR                    = 16;
+    const ERROR_BOOKSHELF_REQUEST_NOT_EXISTS    = 17;
 
     const SUB_ERROR_USER_EMAIL_ADDRESS          = 1;
     const SUB_ERROR_USER_NAME                   = 2;
@@ -57,54 +61,68 @@ class Settings
     const SUCCESS_BOOK_REMOVED_FORM_BOOKSHELF   = 8;
     const SUCCESS_BORROWED_BOOK                 = 9;
     const SUCCESS_RETURNED_BOOK                 = 10;
+    const SUCCESS_BOOKSHELF_REQUEST_ADDED       = 11;
 
     /* Database */
-    const DATABASE_TABLE_USERS                  = "users";
-    const KEY_USERS_USER_ID                     = "user_id";
-    const KEY_USERS_USER_EMAIL                  = "user_email";
-    const KEY_USERS_USER_PASSWORD               = "user_password";
-    const KEY_USERS_USER_AUTH_TOKEN             = "user_auth_token";
-    const KEY_USERS_USER_SIGNED_IN              = "user_signed_in";
-    const KEY_USERS_USER_NAME                   = "user_name";
-    const KEY_USERS_USER_SCORE                  = "user_score";
-    const KEY_USERS_USER_CREATION_DATE          = "user_creation_date";
-    const KEY_USERS_USER_ACCOUNT_TYPE           = "user_account_type";
+    const DATABASE_TABLE_USERS                                      = "users";
+    const KEY_USERS_USER_ID                                         = "user_id";
+    const KEY_USERS_USER_EMAIL                                      = "user_email";
+    const KEY_USERS_USER_PASSWORD                                   = "user_password";
+    const KEY_USERS_USER_AUTH_TOKEN                                 = "user_auth_token";
+    const KEY_USERS_USER_SIGNED_IN                                  = "user_signed_in";
+    const KEY_USERS_USER_NAME                                       = "user_name";
+    const KEY_USERS_USER_SCORE                                      = "user_score";
+    const KEY_USERS_USER_CREATION_DATE                              = "user_creation_date";
+    const KEY_USERS_USER_ACCOUNT_TYPE                               = "user_account_type";
 
-    const DATABASE_TABLE_BOOKSHELVES            = "bookshelves";
-    const KEY_BOOKSHELVES_BOOKSHELF_ID          = "bookshelf_id";
-    const KEY_BOOKSHELVES_BOOKSHELF_LATITUDE    = "bookshelf_latitude";
-    const KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE   = "bookshelf_longitude";
-    const KEY_BOOKSHELVES_BOOKSHELF_NAME        = "bookshelf_name";
-    const KEY_BOOKSHELVES_BOOKSHELF_AUTHOR      = "bookshelf_author";
+    const DATABASE_TABLE_BOOKSHELVES                                = "bookshelves";
+    const KEY_BOOKSHELVES_BOOKSHELF_ID                              = "bookshelf_id";
+    const KEY_BOOKSHELVES_BOOKSHELF_LATITUDE                        = "bookshelf_latitude";
+    const KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE                       = "bookshelf_longitude";
+    const KEY_BOOKSHELVES_BOOKSHELF_NAME                            = "bookshelf_name";
+    const KEY_BOOKSHELVES_BOOKSHELF_AUTHOR                          = "bookshelf_author";
 
-    const DATABASE_TABLE_BOOKS                  = "books";
-    const KEY_BOOKS_BOOK_ID                     = "book_id";
-    const KEY_BOOKS_BOOK_TITLE                  = "book_title";
-    const KEY_BOOKS_BOOK_AUTHOR                 = "book_author";
-    const KEY_BOOKS_BOOK_ISBN                   = "book_isbn";
-    const KEY_BOOKS_BOOK_PUBLICATION_DATE       = "book_publication_date";
-    const KEY_BOOKS_BOOK_CATEGORY               = "book_category";
-    const KEY_BOOKS_BOOK_COVER                  = "book_cover";
-    const KEY_BOOKS_BOOK_USER_AUTHOR            = "book_user_author";
+    const DATABASE_TABLE_BOOKSHELF_REQUESTS                         = "bookshelf_requests";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID               = "bookshelf_request_id";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE                 = "bookshelf_latitude";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE                = "bookshelf_longitude";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME                     = "bookshelf_name";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR                   = "bookshelf_author";
+    const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME     = "bookshelf_request_closing_time";
 
-    const DATABASE_TABLE_BOOKSHELVES_BOOKS      = "bookshelves_books";
-    const KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID    = "bookshelf_id";
-    const KEY_BOOKSHELVES_BOOKS_BOOK_ID         = "book_id";
-    const KEY_BOOKSHELVES_BOOKS_BOOK_ADDER      = "book_adder";
+    const DATABASE_TABLE_BOOKSHELF_REQUESTS_VOTES                   = "bookshelf_requests_votes";
+    const KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID         = "bookshelf_request_id";
+    const KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED   = "bookshelf_request_approved";
+    const KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID                      = "user_id";
 
-    const DATABASE_TABLE_BORROWED_BOOKS         = "borrowed_books";
-    const KEY_BORROWED_BOOKS_BORROW_ID          = "borrow_id";
-    const KEY_BORROWED_BOOKS_USER_ID            = "user_id";
-    const KEY_BORROWED_BOOKS_BOOKSHELF_ID       = "bookshelf_id";
-    const KEY_BORROWED_BOOKS_BOOK_ID            = "book_id";
-    const KEY_BORROWED_BOOKS_BORROW_TIME        = "borrow_time";
+    const DATABASE_TABLE_BOOKS                                      = "books";
+    const KEY_BOOKS_BOOK_ID                                         = "book_id";
+    const KEY_BOOKS_BOOK_TITLE                                      = "book_title";
+    const KEY_BOOKS_BOOK_AUTHOR                                     = "book_author";
+    const KEY_BOOKS_BOOK_ISBN                                       = "book_isbn";
+    const KEY_BOOKS_BOOK_PUBLICATION_DATE                           = "book_publication_date";
+    const KEY_BOOKS_BOOK_CATEGORY                                   = "book_category";
+    const KEY_BOOKS_BOOK_COVER                                      = "book_cover";
+    const KEY_BOOKS_BOOK_USER_AUTHOR                                = "book_user_author";
 
-    const DATABASE_TABLE_RETURNED_BOOKS         = "returned_books";
-    const KEY_RETURNED_BOOKS_RETURN_ID          = "return_id";
-    const KEY_RETURNED_BOOKS_USER_ID            = "user_id";
-    const KEY_RETURNED_BOOKS_BOOKSHELF_ID       = "bookshelf_id";
-    const KEY_RETURNED_BOOKS_BOOK_ID            = "book_id";
-    const KEY_RETURNED_BOOKS_RETURN_TIME        = "return_time";
+    const DATABASE_TABLE_BOOKSHELVES_BOOKS                          = "bookshelves_books";
+    const KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID                        = "bookshelf_id";
+    const KEY_BOOKSHELVES_BOOKS_BOOK_ID                             = "book_id";
+    const KEY_BOOKSHELVES_BOOKS_BOOK_ADDER                          = "book_adder";
+
+    const DATABASE_TABLE_BORROWED_BOOKS                             = "borrowed_books";
+    const KEY_BORROWED_BOOKS_BORROW_ID                              = "borrow_id";
+    const KEY_BORROWED_BOOKS_USER_ID                                = "user_id";
+    const KEY_BORROWED_BOOKS_BOOKSHELF_ID                           = "bookshelf_id";
+    const KEY_BORROWED_BOOKS_BOOK_ID                                = "book_id";
+    const KEY_BORROWED_BOOKS_BORROW_TIME                            = "borrow_time";
+
+    const DATABASE_TABLE_RETURNED_BOOKS                             = "returned_books";
+    const KEY_RETURNED_BOOKS_RETURN_ID                              = "return_id";
+    const KEY_RETURNED_BOOKS_USER_ID                                = "user_id";
+    const KEY_RETURNED_BOOKS_BOOKSHELF_ID                           = "bookshelf_id";
+    const KEY_RETURNED_BOOKS_BOOK_ID                                = "book_id";
+    const KEY_RETURNED_BOOKS_RETURN_TIME                            = "return_time";
 
     /* JSON */
     const JSON_KEY_ERROR                        = "error";
@@ -165,6 +183,17 @@ class Settings
     const JSON_KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE  = self::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE;
     const JSON_KEY_BOOKSHELVES_BOOKSHELF_NAME       = self::KEY_BOOKSHELVES_BOOKSHELF_NAME;
     const JSON_KEY_BOOKSHELVES_BOOKSHELF_AUTHOR     = self::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR;
+
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID              = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID;
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE                = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE;
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE               = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE;
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME                    = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME;
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR                  = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR;
+    const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME    = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME;
+
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID        = self::KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID;
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED  = self::KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED;
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID                     = self::KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID;
 
     const JSON_KEY_BOOKS_BOOK_ID                    = self::KEY_BOOKS_BOOK_ID;
     const JSON_KEY_BOOKS_BOOK_TITLE                 = self::KEY_BOOKS_BOOK_TITLE;
