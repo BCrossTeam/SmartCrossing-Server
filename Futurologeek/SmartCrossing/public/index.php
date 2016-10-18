@@ -93,6 +93,23 @@ function handleUser($jsonData){
             }
             break;
 
+        case "book":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $user->setUserId($_GET["id"]);
+                        return $user->getBorrowedBooks();
+                    } else {
+                        return "No user selected";
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         case "stats":
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":

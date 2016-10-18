@@ -10,6 +10,7 @@ RewriteRule ^user/([0-9]+)/?$                       public/index.php?class=user&
 RewriteRule ^user/sign/?$                           public/index.php?class=user&action=sign [nc,qsa]
 RewriteRule ^user/auth/?$                           public/index.php?class=user&action=auth [nc,qsa]
 RewriteRule ^user/auth/([a-zA-Z0-9]+)/?$            public/index.php?class=user&action=auth&token=$1 [nc,qsa]
+RewriteRule ^user/([0-9]+)/book/?$                  public/index.php?class=user&action=book&id=$1 [nc,qsa]
 RewriteRule ^user/stats/?$                          public/index.php?class=user&action=stats [nc,qsa]
 RewriteRule ^user/([0-9]+)/stats/?$                 public/index.php?class=user&action=stats&id=$1 [nc,qsa]
 RewriteRule ^user/ranking/?$                        public/index.php?class=user&action=ranking [nc,qsa]

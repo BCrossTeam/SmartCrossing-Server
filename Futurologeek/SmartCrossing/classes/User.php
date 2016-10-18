@@ -510,6 +510,81 @@ class User
         }
     }
 
+    public function getBorrowedBooks($returnRaw = false){
+        $exists = $this->getUser(true);
+        if($exists === null || $exists === -1 || $exists === -2){
+            if($returnRaw){
+                return $exists;
+            } else {
+                if($exists === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } elseif($exists === -2){
+                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                        [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseRawQuery(
+            "SELECT ".Settings::KEY_BOOKS_BOOK_ID.", ".Settings::KEY_BOOKS_BOOK_TITLE.
+            ", ".Settings::KEY_BOOKS_BOOK_AUTHOR." FROM ".Settings::DATABASE_TABLE_BOOKS." WHERE ".
+            Settings::KEY_BOOKS_BOOK_ID." IN (SELECT DISTINCT ".Settings::JSON_KEY_BORROWED_BOOKS_BOOK_ID." FROM ".
+            Settings::DATABASE_TABLE_BORROWED_BOOKS." LEFT JOIN (SELECT ".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
+            Settings::KEY_BORROWED_BOOKS_BOOK_ID." as borrowed_book, COUNT(".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
+            Settings::KEY_BORROWED_BOOKS_BORROW_ID.") as borrow_count FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            " WHERE ".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".Settings::KEY_BORROWED_BOOKS_USER_ID."=? GROUP BY ".
+            Settings::DATABASE_TABLE_BORROWED_BOOKS.".".Settings::KEY_BORROWED_BOOKS_BOOK_ID.") AS A ON A.borrowed_book=".
+            Settings::KEY_BOOKS_BOOK_ID." LEFT JOIN (SELECT ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
+            Settings::KEY_BORROWED_BOOKS_BOOK_ID." as returned_book, COUNT(".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
+            Settings::KEY_RETURNED_BOOKS_RETURN_ID.") as return_count FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            " WHERE ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::KEY_RETURNED_BOOKS_USER_ID."=? GROUP BY ".
+            Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID.
+            ") AS B ON B.returned_book=".Settings::KEY_BOOKS_BOOK_ID.
+            " WHERE borrow_count > return_count OR (borrow_count IS NOT NULL AND return_count IS NULL))",
+            [Settings::JSON_KEY_BOOKS_BOOK_ID, Settings::JSON_KEY_BOOKS_BOOK_TITLE,
+                Settings::JSON_KEY_BOOKS_BOOK_AUTHOR], "ii", [$this->userId, $this->userId]);
+        $mysqli->databaseClose();
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                return $result;
+            } else {
+                $output = [Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                    Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS  => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS][] = [
+                        Settings::JSON_KEY_BOOKS_BOOK_ID => $item[0],
+                        Settings::JSON_KEY_BOOKS_BOOK_TITLE => $item[1],
+                        Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $item[2]
+                    ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else if($result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                    [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+            } else {
+                $output = [Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                    Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS  => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS][] = [
+                        Settings::JSON_KEY_BOOKS_BOOK_ID => $item[0],
+                        Settings::JSON_KEY_BOOKS_BOOK_TITLE => $item[1],
+                        Settings::JSON_KEY_BOOKS_BOOK_AUTHOR => $item[2]
+                    ];
+                }
+                return json_encode($output);
+            }
+        }
+    }
+
     public static function getGlobalRanking($buffer = 0, $returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
