@@ -1080,6 +1080,57 @@ class Bookshelf
         }
     }
 
+    public static function getBookshelfRequestList($returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+            [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME]);
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                $mysqli->databaseClose();
+                return $result;
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST][] = [
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $item[0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $item[3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $item[4],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $item[5]
+                    ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else if($result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS);
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST][] = [
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $item[0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $item[3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $item[4],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $item[5]
+                    ];
+                }
+                return json_encode($output);
+            }
+        }
+    }
+
     /**
      * Function used to check if provided bookshelf coordinates format is valid.
      *

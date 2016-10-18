@@ -346,6 +346,23 @@ function handleBookshelf($jsonData){
             }
             break;
 
+        case "request":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                    if (isset($_GET["id"])) {
+                        $bookshelf->setBookshelfId($_GET["id"]);
+                        return $bookshelf->getBookshelfRequest();
+                    } else {
+                        return Bookshelf::getBookshelfRequestList();
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":

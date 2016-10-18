@@ -20,6 +20,9 @@ RewriteRule ^bookshelf/([0-9]+)/stats/?$            index.php?class=bookshelf&ac
 RewriteRule ^bookshelf/([0-9]+)/book/?$             index.php?class=bookshelf&action=book&id=$1 [nc,qsa]
 RewriteRule ^bookshelf/([0-9]+)/book/([0-9]+)/?$    index.php?class=bookshelf&action=book&id=$1&book_id=$2 [nc,qsa]
 
+RewriteRule ^bookshelf/request/?$                   index.php?class=bookshelf&action=request [nc,qsa]
+RewriteRule ^bookshelf/request/([0-9]+)/?$          index.php?class=bookshelf&action=request&id=$1 [nc,qsa]
+
 RewriteRule ^book/?$                                index.php?class=book&action=none [nc,qsa]
 RewriteRule ^book/([0-9]+)/?$                       index.php?class=book&action=none&id=$1 [nc,qsa]
 RewriteRule ^book/stats/?$                          index.php?class=book&action=stats [nc,qsa]
