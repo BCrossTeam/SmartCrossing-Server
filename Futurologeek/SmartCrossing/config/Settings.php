@@ -13,6 +13,8 @@ class Settings
 
     /* Bookshelf Requests */
     const BOOKSHELF_REQUEST_VOTE_TIME = "+ 2 week";
+    const BOOKSHELF_REQUEST_VOTE_THRESHOLD = 10;
+    const BOOKSHELF_REQUEST_APPROVAL_THRESHOLD = 0.70;
 
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
@@ -66,6 +68,9 @@ class Settings
     const SUCCESS_RETURNED_BOOK                 = 10;
     const SUCCESS_BOOKSHELF_REQUEST_ADDED       = 11;
     const SUCCESS_VOTED                         = 12;
+    const SUCCESS_BOOKSHELF_REQUESTS_EVALUATED  = 13;
+    const SUCCESS_BOOKSHELF_REQUEST_ACCEPTED    = 14;
+    const SUCCESS_BOOKSHELF_REQUEST_REJECTED    = 15;
 
     /* Database */
     const DATABASE_TABLE_USERS                                      = "users";

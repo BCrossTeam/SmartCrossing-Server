@@ -127,7 +127,7 @@ class Bookshelf
         $this->user->setUserId($result[0][0]);
         $this->user->setUserAccountType($result[0][1]);
 
-        $hasAddPermission = $result[0][1] == User::USER_ACCOUNT_TYPE_ADMIN && $result[0][1] == User::USER_ACCOUNT_TYPE_MODERATOR;
+        $hasAddPermission = $result[0][1] == User::USER_ACCOUNT_TYPE_ADMIN || $result[0][1] == User::USER_ACCOUNT_TYPE_MODERATOR;
         if($hasAddPermission){
             $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELVES,
                 [Settings::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE, Settings::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE,
@@ -668,6 +668,166 @@ class Bookshelf
         }
     }
 
+    public function evaluateBookshelfRequests(){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+            [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID],
+            Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME." < NOW()");
+
+        if($result === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUESTS_EVALUATED);
+        }
+
+        foreach ($result as $item){
+            $votesTotal = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELF_REQUEST_VOTES,
+                Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID."=?",
+                "i", [$item[0]]);
+
+            $votesApproved = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELF_REQUEST_VOTES,
+                Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID."=?".
+                " AND ".Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_APPROVED."=?",
+                "ii", [$item[0], 1]);
+
+            if($votesTotal !== -1 && $votesApproved !== -1){
+                if($votesTotal >= Settings::BOOKSHELF_REQUEST_VOTE_THRESHOLD){
+                    if($votesApproved/$votesTotal >= Settings::BOOKSHELF_REQUEST_APPROVAL_THRESHOLD){
+                        $this->bookshelfId = $item[0];
+                        $bookshelfRequest = $this->getBookshelfRequest(true);
+
+                        if($bookshelfRequest !== null && $bookshelfRequest !== -1 && $bookshelfRequest !== -2){
+                            $succeeded = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELVES,
+                                [Settings::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE,
+                                    Settings::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE,
+                                    Settings::KEY_BOOKSHELVES_BOOKSHELF_NAME,
+                                    Settings::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR,
+                                ],
+                                "ddss",
+                                [$bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE],
+                                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE],
+                                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME],
+                                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR]
+                                ]
+                                );
+
+                            if($succeeded !== -1 && $succeeded > 0){
+                                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID."=?",
+                                    "i", [$item[0]]);
+                            }
+                        }
+                    } else {
+                        $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                            Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID."=?",
+                            "i", [$item[0]]);
+                    }
+                }
+            }
+        }
+        return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUESTS_EVALUATED);
+    }
+
+    public function acceptBookshelfRequest(){
+        $bookshelfRequest = $this->getBookshelfRequest(true);
+
+        if($bookshelfRequest == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_REQUEST_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID, $this->bookshelfId]);
+        } elseif($bookshelfRequest == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($bookshelfRequest == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_REQUEST_ID]);
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_ACCOUNT_TYPE],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $this->user->setUserId($result[0][0]);
+        $this->user->setUserAccountType($result[0][1]);
+
+        if($result[0][1] == User::USER_ACCOUNT_TYPE_ADMIN || $result[0][1] == User::USER_ACCOUNT_TYPE_MODERATOR){
+            $succeeded = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELVES,
+                [Settings::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE,
+                    Settings::KEY_BOOKSHELVES_BOOKSHELF_LONGITUDE,
+                    Settings::KEY_BOOKSHELVES_BOOKSHELF_NAME,
+                    Settings::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR,
+                ],
+                "ddss",
+                [$bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE],
+                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE],
+                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME],
+                    $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR]
+                ]
+            );
+
+            if($succeeded !== -1){
+                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                    Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID."=?",
+                    "i", [$this->bookshelfId]);
+                return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUEST_ACCEPTED);
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        } else {
+            return Settings::buildErrorMessage(Settings::ERROR_PERMISSION_DENIED);
+        }
+    }
+
+    public function rejectBookshelfRequest(){
+        $bookshelfRequest = $this->getBookshelfRequest(true);
+
+        if($bookshelfRequest == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_REQUEST_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID, $this->bookshelfId]);
+        } elseif($bookshelfRequest == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($bookshelfRequest == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_REQUEST_ID]);
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_ACCOUNT_TYPE],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $this->user->setUserId($result[0][0]);
+        $this->user->setUserAccountType($result[0][1]);
+
+        if($result[0][1] == User::USER_ACCOUNT_TYPE_ADMIN || $result[0][1] == User::USER_ACCOUNT_TYPE_MODERATOR){
+            $succeeded = $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID."=?",
+                "i", [$this->bookshelfId]);
+
+            if($succeeded !== -1){
+                return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUEST_REJECTED);
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        } else {
+            return Settings::buildErrorMessage(Settings::ERROR_PERMISSION_DENIED);
+        }
+    }
+
     public function voteOnBookshelfRequest($approved){
         $bookshelfRequest = $this->getBookshelfRequest(true);
 
@@ -1148,7 +1308,58 @@ class Bookshelf
                 Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE,
                 Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME,
                 Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR,
-                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME]);
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME], Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME." > NOW()");
+
+        if($returnRaw){
+            if($result === -1 || $result === null){
+                $mysqli->databaseClose();
+                return $result;
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST][] = [
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $item[0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $item[3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $item[4],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $item[5]
+                    ];
+                }
+                return $output;
+            }
+        } else {
+            if($result === -1){
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            } else if($result === null){
+                return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_NOT_EXISTS);
+            } else {
+                $output = [Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST => []];
+                foreach ($result as $item) {
+                    $output[Settings::JSON_KEY_BOOKSHELF_REQUEST_LIST][] = [
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID => $item[0],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE => $item[1],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE => $item[2],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME => $item[3],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR => $item[4],
+                        Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME => $item[5]
+                    ];
+                }
+                return json_encode($output);
+            }
+        }
+    }
+
+    public static function getBookshelfRequestListAdmin($returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_BOOKSHELF_REQUESTS,
+            [Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LATITUDE,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_LONGITUDE,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_NAME,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR,
+                Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME], Settings::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME." < NOW()");
 
         if($returnRaw){
             if($result === -1 || $result === null){

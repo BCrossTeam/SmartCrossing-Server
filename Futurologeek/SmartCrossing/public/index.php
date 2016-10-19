@@ -370,7 +370,34 @@ function handleBookshelf($jsonData){
                         $bookshelf->setBookshelfId($_GET["id"]);
                         return $bookshelf->getBookshelfRequest();
                     } else {
-                        return Bookshelf::getBookshelfRequestList();
+                        if(isset($_GET["admin"]) && boolval($_GET["admin"])){
+                            return Bookshelf::getBookshelfRequestListAdmin();
+                        } else {
+                            return Bookshelf::getBookshelfRequestList();
+                        }
+                    }
+                    break;
+
+                case "POST":
+                    if (isset($_GET["id"])) {
+                        $bookshelf->setBookshelfId($_GET["id"]);
+                        if(isset($_GET["admin"]) && boolval($_GET["admin"])){
+                            if(isset($_GET["accepted"])){
+                                $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                    ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                                if(boolval($_GET["accepted"])){
+                                    return $bookshelf->acceptBookshelfRequest();
+                                } else {
+                                    return $bookshelf->rejectBookshelfRequest();
+                                }
+                            } else {
+                                return $bookshelf->evaluateBookshelfRequests();
+                            }
+                        } else {
+                            return "Invalid method";
+                        }
+                    } else {
+                        return "No bookshelf request selected";
                     }
                     break;
 
