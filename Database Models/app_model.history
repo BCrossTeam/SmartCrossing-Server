@@ -1,0 +1,26 @@
+app_model_1.sql
+-> users
+
+app_model_2.sql
+-> users
+-> books
+-> bookshelves
+-> bookshelves_books
+
+app_model_3.sql
+-> users
+-> books
+-> bookshelves
+-> bookshelves_books
+-> borrowed_books
+-> returned_books
+
+app_model_4.sql
+-> users
+-> books
+-> bookshelves
+-> bookshelves_books
+-> borrowed_books
+-> returned_books
+-> bookshelf_requests
+-> bookshelf_request_votes
