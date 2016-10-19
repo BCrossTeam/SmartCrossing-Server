@@ -391,13 +391,17 @@ function handleBookshelf($jsonData){
                                     return $bookshelf->rejectBookshelfRequest();
                                 }
                             } else {
-                                return $bookshelf->evaluateBookshelfRequests();
+                                return "No vote";
                             }
                         } else {
                             return "Invalid method";
                         }
                     } else {
-                        return "No bookshelf request selected";
+                        if(isset($_GET["admin"]) && boolval($_GET["admin"])){
+                            return $bookshelf->evaluateBookshelfRequests();
+                        } else {
+                            return "No bookshelf request selected";
+                        }
                     }
                     break;
 
