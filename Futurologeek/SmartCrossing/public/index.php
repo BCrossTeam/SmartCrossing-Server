@@ -380,6 +380,29 @@ function handleBookshelf($jsonData){
             }
             break;
 
+        case "vote":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "POST":
+                    if (isset($_GET["id"])) {
+                        if(isset($_GET["approved"])){
+                            $bookshelf->setBookshelfId($_GET["id"]);
+                            $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
+                                ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
+                            return $bookshelf->voteOnBookshelfRequest(boolval($_GET["approved"]));
+                        } else {
+                            return "No vote";
+                        }
+                    } else {
+                        return "No request selected";
+                    }
+                    break;
+
+                default:
+                    return "Invalid method";
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":

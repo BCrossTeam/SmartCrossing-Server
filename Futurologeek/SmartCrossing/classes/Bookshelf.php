@@ -668,6 +668,65 @@ class Bookshelf
         }
     }
 
+    public function voteOnBookshelfRequest($approved){
+        $bookshelfRequest = $this->getBookshelfRequest(true);
+
+        if($bookshelfRequest == null){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_REQUEST_NOT_EXISTS,
+                [Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_ID, $this->bookshelfId]);
+        } elseif($bookshelfRequest == -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } elseif($bookshelfRequest == -2){
+            return Settings::buildErrorMessage(Settings::ERROR_INPUT_INVALID,
+                [Settings::JSON_KEY_SUB_ERROR, Settings::SUB_ERROR_BOOKSHELF_REQUEST_ID]);
+        }
+
+        if(date_create(
+            $bookshelfRequest[Settings::JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME],
+                new \DateTimeZone("UTC")) <= date_create(null, new \DateTimeZone("UTC"))){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOKSHELF_REQUEST_VOTE_CLOSED);
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID],
+            Settings::KEY_USERS_USER_AUTH_TOKEN."=?", "s", [$this->user->getUserAuthToken()]);
+
+        if($result === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === null || count($result) <= 0) {
+            return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $this->user->setUserId($result[0][0]);
+
+        $result = $mysqli->databaseExists(Settings::DATABASE_TABLE_BOOKSHELF_REQUEST_VOTES,
+            Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID.
+            "=? AND ".Settings::KEY_BOOKSHELF_REQUEST_VOTES_USER_ID."=?",
+            "ii",
+            [$this->bookshelfId, $this->user->getUserId()]);
+
+        if($result === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($result === true) {
+            return Settings::buildErrorMessage(Settings::ERROR_USER_ALREADY_VOTED);
+        }
+
+        $result = $mysqli->databaseInsertRow(Settings::DATABASE_TABLE_BOOKSHELF_REQUEST_VOTES,
+            [Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID, Settings::KEY_BOOKSHELF_REQUEST_VOTES_USER_ID,
+                Settings::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_APPROVED],
+            "iii",
+            [$this->bookshelfId, $this->user->getUserId(), $approved]);
+        $mysqli->databaseClose();
+
+        if($result === -1){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else {
+            return Settings::buildSuccessMessage(Settings::SUCCESS_VOTED);
+        }
+    }
+
     /**
      * Function used to get bookshelf public data (id, latitude, longitude, name, author) using bookshelf id
      *

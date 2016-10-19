@@ -12,7 +12,7 @@ class Settings
     const COVER_HTTPS_PATH = "https://static.smartcrossing.pl/";
 
     /* Bookshelf Requests */
-    const BOOKSHELF_REQUEST_VOTE_TIME = "+ 2 day";
+    const BOOKSHELF_REQUEST_VOTE_TIME = "+ 2 week";
 
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
@@ -41,6 +41,8 @@ class Settings
     const ERROR_CANNOT_RETURN_BOOK              = 15;
     const ERROR_UPLOAD_ERROR                    = 16;
     const ERROR_BOOKSHELF_REQUEST_NOT_EXISTS    = 17;
+    const ERROR_USER_ALREADY_VOTED              = 18;
+    const ERROR_BOOKSHELF_REQUEST_VOTE_CLOSED   = 19;
 
     const SUB_ERROR_USER_EMAIL_ADDRESS          = 1;
     const SUB_ERROR_USER_NAME                   = 2;
@@ -49,6 +51,7 @@ class Settings
     const SUB_ERROR_BOOKSHELF_COORDINATES       = 5;
     const SUB_ERROR_BOOKSHELF_ID                = 6;
     const SUB_ERROR_BOOK_ID                     = 7;
+    const SUB_ERROR_BOOKSHELF_REQUEST_ID        = 8;
 
     /* Success */
     const SUCCESS_SIGNED_UP                     = 1;
@@ -62,6 +65,7 @@ class Settings
     const SUCCESS_BORROWED_BOOK                 = 9;
     const SUCCESS_RETURNED_BOOK                 = 10;
     const SUCCESS_BOOKSHELF_REQUEST_ADDED       = 11;
+    const SUCCESS_VOTED                         = 12;
 
     /* Database */
     const DATABASE_TABLE_USERS                                      = "users";
@@ -90,10 +94,10 @@ class Settings
     const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR                   = "bookshelf_author";
     const KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME     = "bookshelf_request_closing_time";
 
-    const DATABASE_TABLE_BOOKSHELF_REQUESTS_VOTES                   = "bookshelf_requests_votes";
-    const KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID         = "bookshelf_request_id";
-    const KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED   = "bookshelf_request_approved";
-    const KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID                      = "user_id";
+    const DATABASE_TABLE_BOOKSHELF_REQUEST_VOTES                    = "bookshelf_request_votes";
+    const KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID          = "bookshelf_request_id";
+    const KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_APPROVED    = "bookshelf_request_approved";
+    const KEY_BOOKSHELF_REQUEST_VOTES_USER_ID                       = "user_id";
 
     const DATABASE_TABLE_BOOKS                                      = "books";
     const KEY_BOOKS_BOOK_ID                                         = "book_id";
@@ -194,9 +198,9 @@ class Settings
     const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR                  = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_AUTHOR;
     const JSON_KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME    = self::KEY_BOOKSHELF_REQUESTS_BOOKSHELF_REQUEST_CLOSING_TIME;
 
-    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID        = self::KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID;
-    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED  = self::KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED;
-    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID                     = self::KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID;
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_ID        = self::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_ID;
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_BOOKSHELF_REQUEST_APPROVED  = self::KEY_BOOKSHELF_REQUEST_VOTES_BOOKSHELF_REQUEST_APPROVED;
+    const JSON_KEY_BOOKSHELF_REQUESTS_VOTES_USER_ID                     = self::KEY_BOOKSHELF_REQUEST_VOTES_USER_ID;
 
     const JSON_KEY_BOOKS_BOOK_ID                    = self::KEY_BOOKS_BOOK_ID;
     const JSON_KEY_BOOKS_BOOK_TITLE                 = self::KEY_BOOKS_BOOK_TITLE;

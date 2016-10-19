@@ -457,7 +457,7 @@ class DatabaseConnection
      */
     public function databaseExists($table, $where = null, $where_types = null, $where_variables = null){
         $result = $this->databaseCount($table, $where, $where_types, $where_variables);
-        if($result == -1){
+        if($result === -1){
             return -1;
         } else {
             return $result > 0;
