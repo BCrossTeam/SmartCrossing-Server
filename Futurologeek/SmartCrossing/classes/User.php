@@ -362,6 +362,7 @@ class User
      * Function used to get user public data (id, name, score) using user id or user email address.
      *
      * @param bool $returnRaw
+     * @param bool $detailed
      *
      * Returns:
      *
@@ -377,12 +378,15 @@ class User
      *
      * @return array|int|null|string
      */
-    public function getUser($returnRaw = false){
+    public function getUser($returnRaw = false, $detailed = false){
         if($this->userId > 0){
             $mysqli = new DatabaseConnection();
             $mysqli->databaseConnect();
             $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
-                [Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
+                [Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE,
+                    Settings::KEY_USERS_BADGE_ADDED_BOOKS_TIER, Settings::KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER,
+                    Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER,
+                    Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER, Settings::KEY_USERS_BADGE_SCORE_TIER],
                 Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
             $mysqli->databaseClose();
 
@@ -390,11 +394,31 @@ class User
                 if($result === -1 || $result === null){
                     return $result;
                 } else {
-                    return [
-                        Settings::JSON_KEY_USERS_USER_ID => $this->userId,
-                        Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
-                        Settings::JSON_KEY_USERS_USER_SCORE => $result[0][1]
-                    ];
+                    $score = $this->countScore(true, true);
+                    if($detailed){
+                        $checkedBadges = $this->checkBadges(true, true);
+                        return [
+                            Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                            Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
+                            Settings::JSON_KEY_USERS_USER_SCORE => $score !== -1 ? $score : $result[0][1],
+                            Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKS_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER] : $result[0][2],
+                            Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKSHELVES_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER] : $result[0][3],
+                            Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_USER_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER] : $result[0][4],
+                            Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER => $checkedBadges !== -1 ?
+                            $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER] : $result[0][5],
+                            Settings::JSON_KEY_USER_STATS_BADGE_SCORE_TIER => $checkedBadges !== -1 ?
+                            $checkedBadges[Settings::JSON_KEY_USERS_BADGE_SCORE_TIER] : $result[0][6]
+                        ];
+                    } else{
+                        return [
+                            Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                            Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
+                            Settings::JSON_KEY_USERS_USER_SCORE => $score !== -1 ? $score : $result[0][1]
+                        ];
+                    }
                 }
             } else {
                 if($result === -1){
@@ -403,11 +427,31 @@ class User
                     return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
                         [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
                 } else {
-                    return json_encode([
-                        Settings::JSON_KEY_USERS_USER_ID => $this->userId,
-                        Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
-                        Settings::JSON_KEY_USERS_USER_SCORE => $result[0][1]
-                    ]);
+                    $score = $this->countScore(true, true);
+                    if($detailed){
+                        $checkedBadges = $this->checkBadges(true, true);
+                        return json_encode([
+                            Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                            Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
+                            Settings::JSON_KEY_USERS_USER_SCORE => $score !== -1 ? $score : $result[0][1],
+                            Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKS_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER] : $result[0][2],
+                            Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKSHELVES_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER] : $result[0][3],
+                            Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_USER_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER] : $result[0][4],
+                            Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER] : $result[0][5],
+                            Settings::JSON_KEY_USER_STATS_BADGE_SCORE_TIER => $checkedBadges !== -1 ?
+                                $checkedBadges[Settings::JSON_KEY_USERS_BADGE_SCORE_TIER] : $result[0][6]
+                        ]);
+                    } else{
+                        return json_encode([
+                            Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                            Settings::JSON_KEY_USERS_USER_NAME => $result[0][0],
+                            Settings::JSON_KEY_USERS_USER_SCORE => $score !== -1 ? $score : $result[0][1]
+                        ]);
+                    }
                 }
             }
         } else if($this->userEmail != null){
@@ -451,19 +495,21 @@ class User
         }
     }
 
-    public function countScore($returnRaw = false){
-        $exists = $this->getUser(true);
-        if($exists === null || $exists === -1 || $exists === -2){
-            if($returnRaw){
-                return $exists;
-            } else {
-                if($exists === -1){
-                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
-                } elseif($exists === -2){
-                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+    public function countScore($returnRaw = false, $omitUserCheck = false){
+        if(!$omitUserCheck){
+            $exists = $this->getUser(true);
+            if($exists === null || $exists === -1 || $exists === -2){
+                if($returnRaw){
+                    return $exists;
                 } else {
-                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
-                        [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                    if($exists === -1){
+                        return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                    } elseif($exists === -2){
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                    } else {
+                        return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                            [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                    }
                 }
             }
         }
@@ -501,12 +547,11 @@ class User
 
         $score = $addedBooksCount * Settings::USER_SCORE_MULTIPLIER_ADDED_BOOKS
             + $addedBookshelvesCount * Settings::USER_SCORE_MULTIPLIER_ADDED_BOOKSHELVES
-            + $borrowedByUserCount  * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_USER
-            + $borrowedByOtherCount * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_OTHERS;
+            + $borrowedByUserCount[0][0] * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_USER
+            + $borrowedByOtherCount[0][0] * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_OTHERS;
         $updated = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SCORE],
             "i", [$score], Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
         $mysqli->databaseClose();
-
 
         if($updated === -1){
             if($returnRaw){
@@ -516,7 +561,7 @@ class User
             }
         } else {
             if($returnRaw){
-                return -1;
+                return $score;
             } else {
                 return Settings::buildSuccessMessage(Settings::SUCCESS_USER_SCORE_UPDATED,
                     [Settings::JSON_KEY_USERS_USER_SCORE, $score]);
@@ -524,6 +569,135 @@ class User
         }
     }
 
+    public function checkBadges($returnRaw = false, $omitUserCheck = false){
+        if(!$omitUserCheck){
+            $exists = $this->getUser(true);
+            if($exists === null || $exists === -1 || $exists === -2){
+                if($returnRaw){
+                    return $exists;
+                } else {
+                    if($exists === -1){
+                        return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                    } elseif($exists === -2){
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                    } else {
+                        return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                            [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                    }
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $addedBooks = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKS,
+            Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?", "i", [$this->userId]);
+        $addedBookshelves = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELVES,
+            Settings::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR."=?", "i", [$this->userId]);
+        $booksBorrowedByUser = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_BORROWED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            " WHERE ".Settings::KEY_BORROWED_BOOKS_USER_ID."=?) as a", [null], "i", [$this->userId]);
+        $booksBorrowedByOthers = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            " WHERE ".Settings::KEY_RETURNED_BOOKS_BOOK_ID.
+            " IN (SELECT ".Settings::KEY_BOOKS_BOOK_ID." FROM ".Settings::DATABASE_TABLE_BOOKS.
+            " WHERE ".Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?) AND ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID."!=?) as a", [null], "ii", [$this->userId, $this->userId]);
+        $score = $this->countScore(true, true);
+
+        if($addedBooks === -1 || $addedBookshelves === -1 || $booksBorrowedByUser === -1
+            || $booksBorrowedByOthers === -1 || $score === -1){
+            $mysqli->databaseClose();
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        }
+
+        $addedBooksTier = 0;
+        foreach (Settings::BADGES_ADDED_BOOKS_TIER_REQUIREMENTS as $requirements){
+            if($addedBooks >= $requirements){
+                $addedBooksTier++;
+            } else {
+                break;
+            }
+        }
+
+        $addedBookshelvesTier = 0;
+        foreach (Settings::BADGES_ADDED_BOOKSHELVES_TIER_REQUIREMENTS as $requirements){
+            if($addedBookshelves >= $requirements){
+                $addedBookshelvesTier++;
+            } else {
+                break;
+            }
+        }
+
+        $booksBorrowedByUserTier = 0;
+        foreach (Settings::BADGES_BOOKS_BORROWED_BY_USER_TIER_REQUIREMENTS as $requirements){
+            if($booksBorrowedByUser[0][0] >= $requirements){
+                $booksBorrowedByUserTier++;
+            } else {
+                break;
+            }
+        }
+
+        $booksBorrowedByOthersTier = 0;
+        foreach (Settings::BADGES_BOOKS_BORROWED_BY_OTHER_TIER_REQUIREMENTS as $requirements){
+            if($booksBorrowedByOthers[0][0] >= $requirements){
+                $booksBorrowedByOthersTier++;
+            } else {
+                break;
+            }
+        }
+
+        $scoreTier = 0;
+        foreach (Settings::BADGES_SCORE_TIER_REQUIREMENTS as $requirements){
+            if($score >= $requirements){
+                $scoreTier++;
+            } else {
+                break;
+            }
+        }
+
+        $update = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_BADGE_ADDED_BOOKS_TIER, Settings::KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER,
+            Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER, Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER,
+            Settings::KEY_USERS_BADGE_SCORE_TIER], "iiiii", [$addedBooksTier, $addedBookshelvesTier,
+                $booksBorrowedByUserTier, $booksBorrowedByOthersTier, $scoreTier],
+            Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]
+        );
+        $mysqli->databaseClose();
+
+        if($update === -1){
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        } else {
+            if($returnRaw){
+                return [
+                    Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER => $addedBooksTier,
+                    Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER => $addedBookshelvesTier,
+                    Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER => $booksBorrowedByUserTier,
+                    Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER => $booksBorrowedByOthersTier,
+                    Settings::JSON_KEY_USERS_BADGE_SCORE_TIER => $scoreTier
+                ];
+            } else {
+                return json_encode([
+                    Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER => $addedBooksTier,
+                    Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER => $addedBookshelvesTier,
+                    Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER => $booksBorrowedByUserTier,
+                    Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER => $booksBorrowedByOthersTier,
+                    Settings::JSON_KEY_USERS_BADGE_SCORE_TIER => $scoreTier
+                ]);
+            }
+        }
+    }
 
     public function getUserStats($returnRaw = false){
         $exists = $this->getUser(true);
@@ -545,8 +719,7 @@ class User
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
 
-        $userScore = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SCORE],
-            Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
+        $userScore = $this->countScore(true);
 
         $addedBooks = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKS,
             Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?", "i", [$this->userId]);
@@ -567,15 +740,37 @@ class User
             Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
             " WHERE ".Settings::KEY_RETURNED_BOOKS_USER_ID."=?) as a", [null], "i", [$this->userId]);
 
+        $badges = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_BADGE_ADDED_BOOKS_TIER,
+            Settings::KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER, Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER,
+            Settings::KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER, Settings::KEY_USERS_BADGE_SCORE_TIER],
+            Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?", "i", [$this->userId]);
+
         $mysqli->databaseClose();
 
         $output = [Settings::JSON_KEY_USER_STATS_USER_ID => $this->userId];
-        $output[Settings::JSON_KEY_USER_STATS_USER_SCORE] = $userScore !== -1 ? $userScore[0][0] : null;
-        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT] = $addedBooks !== -1 ? $addedBooks : null;
-        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_GENERAL_COUNT] = $borrowedGeneral !== -1 ? $borrowedGeneral : null;
-        $output[Settings::JSON_KEY_BOOK_STATS_BORROW_UNIQUE_COUNT] = $borrowedUnique !== -1 ? $borrowedUnique[0][0] : null;
-        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_GENERAL_COUNT] = $returnedGeneral !== -1 ? $returnedGeneral : null;
-        $output[Settings::JSON_KEY_BOOK_STATS_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_USER_STATS_USER_SCORE] = $userScore !== -1 ? $userScore : null;
+        $output[Settings::JSON_KEY_USER_STATS_BORROW_GENERAL_COUNT] = $addedBooks !== -1 ? $addedBooks : null;
+        $output[Settings::JSON_KEY_USER_STATS_BORROW_GENERAL_COUNT] = $borrowedGeneral !== -1 ? $borrowedGeneral : null;
+        $output[Settings::JSON_KEY_USER_STATS_BORROW_UNIQUE_COUNT] = $borrowedUnique !== -1 ? $borrowedUnique[0][0] : null;
+        $output[Settings::JSON_KEY_USER_STATS_RETURN_GENERAL_COUNT] = $returnedGeneral !== -1 ? $returnedGeneral : null;
+        $output[Settings::JSON_KEY_USER_STATS_RETURN_UNIQUE_COUNT] = $returnedUnique !== -1 ? $returnedUnique[0][0] : null;
+
+        $checkedBadges = $this->checkBadges(true, true);
+        $output[Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKS_TIER] =
+            $checkedBadges !== -1 ? $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER] :
+                ($badges !== -1 && $badges !== null ? $badges[0][0] : null);
+        $output[Settings::JSON_KEY_USER_STATS_BADGE_ADDED_BOOKSHELVES_TIER] =
+            $checkedBadges !== -1 ? $checkedBadges[Settings::JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER] :
+                ($badges !== -1 && $badges !== null ? $badges[0][1] : null);
+        $output[Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_USER_TIER] =
+            $checkedBadges !== -1 ? $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER] :
+                ($badges !== -1 && $badges !== null ? $badges[0][2] : null);
+        $output[Settings::JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER] =
+            $checkedBadges !== -1 ? $checkedBadges[Settings::JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER] :
+                ($badges !== -1 && $badges !== null ? $badges[0][3] : null);
+        $output[Settings::JSON_KEY_USER_STATS_BADGE_SCORE_TIER] =
+            $checkedBadges !== -1 ? $checkedBadges[Settings::JSON_KEY_USERS_BADGE_SCORE_TIER] :
+                ($badges !== -1 && $badges !== null ? $badges[0][4] : null);
 
         if($returnRaw){
             return $output;
@@ -659,10 +854,27 @@ class User
         }
     }
 
+    public static function updateGlobalRanking(){
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+        $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
+            [Settings::KEY_USERS_USER_ID]);
+
+        if($result === -1 || $result === null){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else {
+            $user = new User();
+            foreach ($result as $item) {
+                $user->setUserId($item[0]);
+                $user->countScore();
+            }
+            return Settings::buildSuccessMessage(Settings::SUCCESS_USER_SCORE_UPDATED);
+        }
+    }
+
     public static function getGlobalRanking($buffer = 0, $returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
-
         $result = $mysqli->databaseFetch(Settings::DATABASE_TABLE_USERS,
             [Settings::KEY_USERS_USER_ID, Settings::KEY_USERS_USER_NAME, Settings::KEY_USERS_USER_SCORE],
             null, null, null, Settings::KEY_USERS_USER_SCORE, true, $buffer);

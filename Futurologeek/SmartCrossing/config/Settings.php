@@ -6,7 +6,7 @@ namespace Futurologeek\SmartCrossing;
 class Settings
 {
     /* Debug */
-    const DEBUG = true;
+    const DEBUG = false;
     const COVER_DIRECTORY_PATH = "/var/www/html/static/";
     const COVER_HTTP_PATH = "http://static.smartcrossing.pl/";
     const COVER_HTTPS_PATH = "https://static.smartcrossing.pl/";
@@ -21,6 +21,38 @@ class Settings
     const USER_SCORE_MULTIPLIER_ADDED_BOOKSHELVES = 20;
     const USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_USER = 2;
     const USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_OTHERS = 1;
+
+    /* Badges */
+    const BADGES_ADDED_BOOKS_TIER_REQUIREMENTS = [
+        1,
+        5,
+        20,
+        50
+    ];
+    const BADGES_ADDED_BOOKSHELVES_TIER_REQUIREMENTS = [
+        1,
+        3,
+        10,
+        20
+    ];
+    const BADGES_BOOKS_BORROWED_BY_USER_TIER_REQUIREMENTS = [
+        1,
+        5,
+        20,
+        50
+    ];
+    const BADGES_BOOKS_BORROWED_BY_OTHER_TIER_REQUIREMENTS = [
+        1,
+        5,
+        20,
+        50
+    ];
+    const BADGES_SCORE_TIER_REQUIREMENTS = [
+        9999,
+        9999,
+        9999,
+        9999
+    ];
 
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
@@ -90,6 +122,11 @@ class Settings
     const KEY_USERS_USER_SCORE                                      = "user_score";
     const KEY_USERS_USER_CREATION_DATE                              = "user_creation_date";
     const KEY_USERS_USER_ACCOUNT_TYPE                               = "user_account_type";
+    const KEY_USERS_BADGE_ADDED_BOOKS_TIER                          = "users_badge_added_books_tier";
+    const KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER                    = "users_badge_added_bookshelves_tier";
+    const KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER               = "users_badge_books_borrowed_by_user_tier";
+    const KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER             = "users_badge_books_borrowed_by_others_tier";
+    const KEY_USERS_BADGE_SCORE_TIER                                = "users_badge_score_tier";
 
     const DATABASE_TABLE_BOOKSHELVES                                = "bookshelves";
     const KEY_BOOKSHELVES_BOOKSHELF_ID                              = "bookshelf_id";
@@ -146,13 +183,18 @@ class Settings
     const JSON_KEY_SUB_ERROR                    = "sub_error";
     const JSON_KEY_ERROR_MSG                    = "error_msg";
 
-    const JSON_KEY_USER_STATS_USER_ID                           = "user_id";
-    const JSON_KEY_USER_STATS_USER_SCORE                        = "user_score";
-    const JSON_KEY_USER_STATS_BOOKS_ADDED_COUNT                 = "user_books_added_count";
-    const JSON_KEY_USER_STATS_BORROW_GENERAL_COUNT              = "user_borrow_count";
-    const JSON_KEY_USER_STATS_BORROW_UNIQUE_COUNT               = "user_unique_borrow_count";
-    const JSON_KEY_USER_STATS_RETURN_GENERAL_COUNT              = "user_return_count";
-    const JSON_KEY_USER_STATS_RETURN_UNIQUE_COUNT               = "user_unique_return_count";
+    const JSON_KEY_USER_STATS_USER_ID                               = "user_id";
+    const JSON_KEY_USER_STATS_USER_SCORE                            = "user_score";
+    const JSON_KEY_USER_STATS_BOOKS_ADDED_COUNT                     = "user_books_added_count";
+    const JSON_KEY_USER_STATS_BORROW_GENERAL_COUNT                  = "user_borrow_count";
+    const JSON_KEY_USER_STATS_BORROW_UNIQUE_COUNT                   = "user_unique_borrow_count";
+    const JSON_KEY_USER_STATS_RETURN_GENERAL_COUNT                  = "user_return_count";
+    const JSON_KEY_USER_STATS_RETURN_UNIQUE_COUNT                   = "user_unique_return_count";
+    const JSON_KEY_USER_STATS_BADGE_ADDED_BOOKS_TIER                = "user_badge_added_books_tier";
+    const JSON_KEY_USER_STATS_BADGE_ADDED_BOOKSHELVES_TIER          = "user_badge_added_bookshelves_tier";
+    const JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_USER_TIER     = "user_badge_books_borrowed_by_user_tier";
+    const JSON_KEY_USER_STATS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER   = "user_badge_books_borrowed_by_other_tier";
+    const JSON_KEY_USER_STATS_BADGE_SCORE_TIER                      = "user_badge_score_tier";
 
     const JSON_KEY_USER_STATS_BORROWED_BOOKS                    = "user_borrowed_books";
 
@@ -187,15 +229,20 @@ class Settings
     const JSON_KEY_BOOKSHELF_REQUEST_LIST                       = "bookshelf_requests";
     const JSON_KEY_BOOKS_LIST                                   = "books";
 
-    const JSON_KEY_USERS_USER_ID                    = self::KEY_USERS_USER_ID;
-    const JSON_KEY_USERS_USER_EMAIL                 = self::KEY_USERS_USER_EMAIL;
-    const JSON_KEY_USERS_USER_PASSWORD              = self::KEY_USERS_USER_PASSWORD;
-    const JSON_KEY_USERS_USER_AUTH_TOKEN            = self::KEY_USERS_USER_AUTH_TOKEN;
-    const JSON_KEY_USERS_USER_SIGNED_IN             = self::KEY_USERS_USER_SIGNED_IN;
-    const JSON_KEY_USERS_USER_NAME                  = self::KEY_USERS_USER_NAME;
-    const JSON_KEY_USERS_USER_SCORE                 = self::KEY_USERS_USER_SCORE;
-    const JSON_KEY_USERS_USER_CREATION_DATE         = self::KEY_USERS_USER_CREATION_DATE;
-    const JSON_KEY_USERS_USER_ACCOUNT_TYPE          = self::KEY_USERS_USER_ACCOUNT_TYPE;
+    const JSON_KEY_USERS_USER_ID                                = self::KEY_USERS_USER_ID;
+    const JSON_KEY_USERS_USER_EMAIL                             = self::KEY_USERS_USER_EMAIL;
+    const JSON_KEY_USERS_USER_PASSWORD                          = self::KEY_USERS_USER_PASSWORD;
+    const JSON_KEY_USERS_USER_AUTH_TOKEN                        = self::KEY_USERS_USER_AUTH_TOKEN;
+    const JSON_KEY_USERS_USER_SIGNED_IN                         = self::KEY_USERS_USER_SIGNED_IN;
+    const JSON_KEY_USERS_USER_NAME                              = self::KEY_USERS_USER_NAME;
+    const JSON_KEY_USERS_USER_SCORE                             = self::KEY_USERS_USER_SCORE;
+    const JSON_KEY_USERS_USER_CREATION_DATE                     = self::KEY_USERS_USER_CREATION_DATE;
+    const JSON_KEY_USERS_USER_ACCOUNT_TYPE                      = self::KEY_USERS_USER_ACCOUNT_TYPE;
+    const JSON_KEY_USERS_BADGE_ADDED_BOOKS_TIER                 = self::KEY_USERS_BADGE_ADDED_BOOKS_TIER;
+    const JSON_KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER           = self::KEY_USERS_BADGE_ADDED_BOOKSHELVES_TIER;
+    const JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER      = self::KEY_USERS_BADGE_BOOKS_BORROWED_BY_USER_TIER;
+    const JSON_KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER    = self::KEY_USERS_BADGE_BOOKS_BORROWED_BY_OTHERS_TIER;
+    const JSON_KEY_USERS_BADGE_SCORE_TIER                       = self::KEY_USERS_BADGE_SCORE_TIER;
 
     const JSON_KEY_BOOKSHELVES_BOOKSHELF_ID         = self::KEY_BOOKSHELVES_BOOKSHELF_ID;
     const JSON_KEY_BOOKSHELVES_BOOKSHELF_LATITUDE   = self::KEY_BOOKSHELVES_BOOKSHELF_LATITUDE;

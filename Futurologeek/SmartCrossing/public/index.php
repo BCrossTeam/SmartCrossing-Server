@@ -121,6 +121,17 @@ function handleUser($jsonData){
                     }
                     break;
 
+                case "PUT":
+                    if (isset($_GET["id"])) {
+                        $user->setUserId($_GET["id"]);
+                        $user->countScore();
+                        $user->checkBadges();
+                        return $user->getUser(false, true);
+                    } else {
+                        return "User not selected";
+                    }
+                    break;
+
                 default:
                     return "Invalid method";
                     break;
@@ -130,7 +141,11 @@ function handleUser($jsonData){
         case "ranking":
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":
-                        return User::getGlobalRanking(isset($_GET["buffer"]) ? $_GET["buffer"] : 0);
+                    return User::getGlobalRanking(isset($_GET["buffer"]) ? $_GET["buffer"] : 0);
+                    break;
+
+                case "PUT":
+                    return User::updateGlobalRanking();
                     break;
 
                 default:
@@ -144,7 +159,7 @@ function handleUser($jsonData){
                 case "GET":
                     if (isset($_GET["id"])) {
                         $user->setUserId($_GET["id"]);
-                        return $user->getUser();
+                        return $user->getUser(false, true);
                     } else {
                         return "No user selected";
                     }
