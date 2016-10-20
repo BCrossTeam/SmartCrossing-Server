@@ -6,7 +6,7 @@ namespace Futurologeek\SmartCrossing;
 class Settings
 {
     /* Debug */
-    const DEBUG = false;
+    const DEBUG = true;
     const COVER_DIRECTORY_PATH = "/var/www/html/static/";
     const COVER_HTTP_PATH = "http://static.smartcrossing.pl/";
     const COVER_HTTPS_PATH = "https://static.smartcrossing.pl/";
@@ -15,6 +15,12 @@ class Settings
     const BOOKSHELF_REQUEST_VOTE_TIME = "+ 2 week";
     const BOOKSHELF_REQUEST_VOTE_THRESHOLD = 10;
     const BOOKSHELF_REQUEST_APPROVAL_THRESHOLD = 0.70;
+
+    /* Score */
+    const USER_SCORE_MULTIPLIER_ADDED_BOOKS = 10;
+    const USER_SCORE_MULTIPLIER_ADDED_BOOKSHELVES = 20;
+    const USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_USER = 2;
+    const USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_OTHERS = 1;
 
     /* Verification */
     const CHARACTERS_LETTERS_LOWERCASE          = "abcdefghijklmnopqrstuvwxyz";
@@ -71,6 +77,7 @@ class Settings
     const SUCCESS_BOOKSHELF_REQUESTS_EVALUATED  = 13;
     const SUCCESS_BOOKSHELF_REQUEST_ACCEPTED    = 14;
     const SUCCESS_BOOKSHELF_REQUEST_REJECTED    = 15;
+    const SUCCESS_USER_SCORE_UPDATED            = 16;
 
     /* Database */
     const DATABASE_TABLE_USERS                                      = "users";

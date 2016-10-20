@@ -451,6 +451,80 @@ class User
         }
     }
 
+    public function countScore($returnRaw = false){
+        $exists = $this->getUser(true);
+        if($exists === null || $exists === -1 || $exists === -2){
+            if($returnRaw){
+                return $exists;
+            } else {
+                if($exists === -1){
+                    return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+                } elseif($exists === -2){
+                    return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
+                } else {
+                    return Settings::buildErrorMessage(Settings::ERROR_USER_NOT_EXISTS,
+                        [Settings::JSON_KEY_USERS_USER_ID, $this->userId]);
+                }
+            }
+        }
+
+        $mysqli = new DatabaseConnection();
+        $mysqli->databaseConnect();
+
+        $addedBooksCount = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKS,
+            Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?", "i", [$this->userId]);
+
+        $addedBookshelvesCount = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELVES,
+            Settings::KEY_BOOKSHELVES_BOOKSHELF_AUTHOR."=?", "i", [$this->userId]);
+
+        $borrowedByUserCount = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_BORROWED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
+            " WHERE ".Settings::KEY_BORROWED_BOOKS_USER_ID."=?) as a", [null], "i", [$this->userId]);
+
+        $borrowedByOtherCount = $mysqli->databaseRawQuery(
+            "SELECT COUNT(*) FROM (SELECT DISTINCT ".Settings::KEY_RETURNED_BOOKS_BOOK_ID. ", ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID." FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
+            " WHERE ".Settings::KEY_RETURNED_BOOKS_BOOK_ID.
+            " IN (SELECT ".Settings::KEY_BOOKS_BOOK_ID." FROM ".Settings::DATABASE_TABLE_BOOKS.
+            " WHERE ".Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=?) AND ".
+            Settings::KEY_RETURNED_BOOKS_USER_ID."!=?) as a", [null], "ii", [$this->userId, $this->userId]);
+
+        if($addedBooksCount === -1 || $addedBookshelvesCount === -1 || $borrowedByUserCount === -1
+            || $borrowedByOtherCount === -1){
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        }
+
+        $score = $addedBooksCount * Settings::USER_SCORE_MULTIPLIER_ADDED_BOOKS
+            + $addedBookshelvesCount * Settings::USER_SCORE_MULTIPLIER_ADDED_BOOKSHELVES
+            + $borrowedByUserCount  * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_USER
+            + $borrowedByOtherCount * Settings::USER_SCORE_MULTIPLIER_BOOKS_BORROWED_BY_OTHERS;
+        $updated = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_USERS, [Settings::KEY_USERS_USER_SCORE],
+            "i", [$score], Settings::KEY_USERS_USER_ID."=?", "i", [$this->userId]);
+        $mysqli->databaseClose();
+
+
+        if($updated === -1){
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        } else {
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildSuccessMessage(Settings::SUCCESS_USER_SCORE_UPDATED,
+                    [Settings::JSON_KEY_USERS_USER_SCORE, $score]);
+            }
+        }
+    }
+
+
     public function getUserStats($returnRaw = false){
         $exists = $this->getUser(true);
         if($exists === null || $exists === -1 || $exists === -2){
