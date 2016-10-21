@@ -70,10 +70,10 @@ class Settings
     const ERROR_PERMISSION_DENIED               = 4;
     const ERROR_UPLOAD_ERROR                    = 5;
 
-    const ERROR_SIGN_IN_FAILED                  = 10;
-    const ERROR_AUTH_FAILED                     = 11;
-    const ERROR_USER_ALREADY_SIGNED_UP          = 12;
-    const ERROR_USER_NOT_EXISTS                 = 13;
+    const ERROR_USER_NOT_EXISTS                 = 10;
+    const ERROR_USER_ALREADY_SIGNED_UP          = 11;
+    const ERROR_SIGN_IN_FAILED                  = 12;
+    const ERROR_AUTH_FAILED                     = 13;
     const ERROR_USER_NOT_SIGNED_IN              = 14;
 
     const ERROR_BOOK_NOT_EXISTS                 = 20;
