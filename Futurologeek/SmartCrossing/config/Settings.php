@@ -69,6 +69,8 @@ class Settings
     const ERROR_MYSQL_CONNECTION                = 3;
     const ERROR_PERMISSION_DENIED               = 4;
     const ERROR_UPLOAD_ERROR                    = 5;
+    const ERROR_INVALID_ACTION                  = 6;
+    const ERROR_INVALID_METHOD                  = 7;
 
     const ERROR_USER_NOT_EXISTS                 = 10;
     const ERROR_USER_ALREADY_SIGNED_UP          = 11;

@@ -34,11 +34,11 @@ if(isset($_GET["class"])){
             break;
 
         default:
-            echo "Invalid class";
+            echo Settings::buildErrorMessage(Settings::ERROR_INVALID_ACTION);
             break;
     }
 } else {
-    echo "No action";
+    echo Settings::buildErrorMessage(Settings::ERROR_INVALID_ACTION);
 }
 
 function handleUser($jsonData){
@@ -57,12 +57,12 @@ function handleUser($jsonData){
 
                         return $user->signIn();
                     } else {
-                        return "No data supplied to server";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -74,7 +74,7 @@ function handleUser($jsonData){
                         $user->setUserAuthToken($_GET["token"]);
                         return $user->signAuth();
                     } else {
-                        return "No data supplied to server";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
@@ -83,12 +83,12 @@ function handleUser($jsonData){
                         $user->setUserAuthToken($_GET["token"]);
                         return $user->signOut();
                     } else {
-                        return "No data supplied to server";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -100,12 +100,12 @@ function handleUser($jsonData){
                         $user->setUserId($_GET["id"]);
                         return $user->getBorrowedBooks();
                     } else {
-                        return "No user selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -128,12 +128,12 @@ function handleUser($jsonData){
                         $user->checkBadges();
                         return $user->getUser(false, true);
                     } else {
-                        return "User not selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -149,7 +149,7 @@ function handleUser($jsonData){
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -161,13 +161,13 @@ function handleUser($jsonData){
                         $user->setUserId($_GET["id"]);
                         return $user->getUser(false, true);
                     } else {
-                        return "No user selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 case "POST":
                     if (isset($_GET["id"])) {
-                        return "Invalid method";
+                        return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     } else {
                         if(isset($jsonData) && $jsonData !== null){
                             $user->setUserEmail(isset($jsonData[Settings::JSON_KEY_USERS_USER_EMAIL])
@@ -181,13 +181,13 @@ function handleUser($jsonData){
 
                             return $user->signUp();
                         } else {
-                            return "No data supplied to server";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -212,7 +212,7 @@ function handleBook($jsonData){
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -224,13 +224,13 @@ function handleBook($jsonData){
                         $book->setBookId($_GET["id"]);
                         return $book->getBook();
                     } else {
-                        return "No book selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 case "POST":
                     if (isset($_GET["id"])) {
-                        return "Invalid method";
+                        return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     } else {
                         if(isset($jsonData) && $jsonData !== null){
                             $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
@@ -253,14 +253,14 @@ function handleBook($jsonData){
 
                             return $book->addBook();
                         } else {
-                            return "No data supplied to server";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
 
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -282,7 +282,7 @@ function handleBookshelf($jsonData){
                         $bookshelf->setBookshelfId($_GET["id"]);
                         return $bookshelf->getBooksInBookshelf();
                     } else {
-                        return "No bookshelf selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
@@ -296,7 +296,7 @@ function handleBookshelf($jsonData){
 
                                 return $bookshelf->returnBook();
                             } else {
-                                return "No data supplied to server";
+                                return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                             }
                         } else {
                             $bookshelf->setBookshelfId($_GET["id"]);
@@ -334,7 +334,7 @@ function handleBookshelf($jsonData){
                             }
                         }
                     } else {
-                        return "No bookshelf selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
@@ -347,15 +347,15 @@ function handleBookshelf($jsonData){
 
                             return $bookshelf->borrowBook();
                         } else {
-                            return "No data supplied to server";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
                     } else {
-                        return "No bookshelf selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -372,7 +372,7 @@ function handleBookshelf($jsonData){
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -405,22 +405,22 @@ function handleBookshelf($jsonData){
                                     return $bookshelf->rejectBookshelfRequest();
                                 }
                             } else {
-                                return "No vote";
+                                return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                             }
                         } else {
-                            return "Invalid method";
+                            return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                         }
                     } else {
                         if(isset($_GET["admin"]) && boolval($_GET["admin"])){
                             return $bookshelf->evaluateBookshelfRequests();
                         } else {
-                            return "No bookshelf request selected";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -435,15 +435,15 @@ function handleBookshelf($jsonData){
                                 ? $jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN] : null);
                             return $bookshelf->voteOnBookshelfRequest(boolval($_GET["approved"]));
                         } else {
-                            return "No vote";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
                     } else {
-                        return "No request selected";
+                        return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;
@@ -461,7 +461,7 @@ function handleBookshelf($jsonData){
 
                 case "POST":
                     if (isset($_GET["id"])) {
-                        return "Invalid method";
+                        return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     } else {
                         if(isset($jsonData) && $jsonData !== null){
                             $user->setUserAuthToken(isset($jsonData[Settings::JSON_KEY_USERS_USER_AUTH_TOKEN])
@@ -478,14 +478,14 @@ function handleBookshelf($jsonData){
 
                             return $bookshelf->addBookshelf();
                         } else {
-                            return "No data supplied to server";
+                            return Settings::buildErrorMessage(Settings::ERROR_INPUT_EMPTY);
                         }
 
                     }
                     break;
 
                 default:
-                    return "Invalid method";
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
                     break;
             }
             break;

@@ -1,4 +1,4 @@
-###### 21-10-2016 21:30, Wersja 1
+###### 21-10-2016 22:10, Wersja 2
 # SmartCrossing-Server
 
 Serwer aplikacji SmartCrossing.
@@ -38,6 +38,8 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | 003   | Błąd podczas łączenia z bazą danych                    |
 | 004   | Brak uprawnień                                         |
 | 005   | Błąd podczas odbierania lub przetwarzania pliku        |
+| 006   | Użyto błędnej akcji                                    |
+| 007   | Użyto błędnej metody HTTP                              |
 | 010   | Użytkownik nie istnieje                                |
 | 011   | Użytkownik jest już zarejestrowany                     |
 | 012   | Zalogowanie nie powiodło się                           |
@@ -413,4 +415,3 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | POST        |                  |              |                           | Brak                       |
 | PUT         |                  |              |                           | Brak                       |
 | DELETE      |                  |              |                           | Brak                       |
-
