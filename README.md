@@ -1,15 +1,15 @@
 ###### 21-10-2016 21:30, Wersja 1
 # SmartCrossing-Server
----
+
 Serwer aplikacji SmartCrossing.
 
 # Połączenia z serwerem
----
+
 Serwer został napisany w oparciu o architekturę REST. Połączenie z serwerem nawiązuje się poprzez wywołanie 
 adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody HTTP.
 
 # Kody odpowiedzi
----
+
 ### Sukces
 | Kod   | Opis                                           |
 | :---: | -----------------------------------------------|
@@ -66,7 +66,7 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | 008   | Błąd dotyczy numeru identyfikacyjnego propozycji dodania nowej półki |
 
 # Stałe
----
+
 ### Kategorie książek
 | Kategoria | Opis                |
 | --------- | ------------------- |
@@ -168,7 +168,7 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | return_time                               |
 
 ## Funkcje
----
+
 ### .../user/
 
 | Metoda HTTP | Content-Type     | Opis wejścia | Przykład wejścia                                               | Akcja                       |
