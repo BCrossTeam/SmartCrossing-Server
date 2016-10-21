@@ -183,12 +183,11 @@ function handleUser($jsonData){
                         } else {
                             return "No data supplied to server";
                         }
-
                     }
                     break;
 
                 default:
-                    echo "Invalid method";
+                    return "Invalid method";
                     break;
             }
             break;
