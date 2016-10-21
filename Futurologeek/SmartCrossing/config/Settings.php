@@ -67,49 +67,54 @@ class Settings
     const ERROR_INPUT_EMPTY                     = 1;
     const ERROR_INPUT_INVALID                   = 2;
     const ERROR_MYSQL_CONNECTION                = 3;
-    const ERROR_USER_ALREADY_SIGNED_UP          = 4;
-    const ERROR_USER_NOT_EXISTS                 = 5;
-    const ERROR_SIGN_IN_FAILED                  = 6;
-    const ERROR_AUTH_FAILED                     = 7;
-    const ERROR_USER_NOT_SIGNED_IN              = 8;
-    const ERROR_PERMISSION_DENIED               = 9;
-    const ERROR_BOOKSHELF_NOT_EXISTS            = 10;
-    const ERROR_BOOK_NOT_EXISTS                 = 11;
-    const ERROR_BOOK_ALREADY_IN_BOOKSHELF       = 12;
-    const ERROR_BOOK_NOT_IN_BOOKSHELF           = 13;
-    const ERROR_CANNOT_BORROW_BOOK              = 14;
-    const ERROR_CANNOT_RETURN_BOOK              = 15;
-    const ERROR_UPLOAD_ERROR                    = 16;
-    const ERROR_BOOKSHELF_REQUEST_NOT_EXISTS    = 17;
-    const ERROR_USER_ALREADY_VOTED              = 18;
-    const ERROR_BOOKSHELF_REQUEST_VOTE_CLOSED   = 19;
+    const ERROR_PERMISSION_DENIED               = 4;
+    const ERROR_UPLOAD_ERROR                    = 5;
+
+    const ERROR_SIGN_IN_FAILED                  = 10;
+    const ERROR_AUTH_FAILED                     = 11;
+    const ERROR_USER_ALREADY_SIGNED_UP          = 12;
+    const ERROR_USER_NOT_EXISTS                 = 13;
+    const ERROR_USER_NOT_SIGNED_IN              = 14;
+
+    const ERROR_BOOK_NOT_EXISTS                 = 20;
+    const ERROR_BOOKSHELF_NOT_EXISTS            = 21;
+    const ERROR_BOOK_ALREADY_IN_BOOKSHELF       = 22;
+    const ERROR_BOOK_NOT_IN_BOOKSHELF           = 23;
+    const ERROR_CANNOT_BORROW_BOOK              = 24;
+    const ERROR_CANNOT_RETURN_BOOK              = 25;
+
+    const ERROR_BOOKSHELF_REQUEST_NOT_EXISTS    = 30;
+    const ERROR_BOOKSHELF_REQUEST_VOTE_CLOSED   = 31;
+    const ERROR_USER_ALREADY_VOTED              = 32;
 
     const SUB_ERROR_USER_EMAIL_ADDRESS          = 1;
     const SUB_ERROR_USER_NAME                   = 2;
     const SUB_ERROR_USER_PASSWORD               = 3;
     const SUB_ERROR_USER_AUTH_TOKEN             = 4;
-    const SUB_ERROR_BOOKSHELF_COORDINATES       = 5;
+    const SUB_ERROR_BOOK_ID                     = 5;
     const SUB_ERROR_BOOKSHELF_ID                = 6;
-    const SUB_ERROR_BOOK_ID                     = 7;
+    const SUB_ERROR_BOOKSHELF_COORDINATES       = 7;
     const SUB_ERROR_BOOKSHELF_REQUEST_ID        = 8;
 
     /* Success */
-    const SUCCESS_SIGNED_UP                     = 1;
-    const SUCCESS_SIGNED_IN                     = 2;
-    const SUCCESS_AUTH                          = 3;
-    const SUCCESS_SIGNED_OUT                    = 4;
-    const SUCCESS_BOOKSHELF_ADDED               = 5;
-    const SUCCESS_BOOK_ADDED                    = 6;
-    const SUCCESS_BOOK_ADDED_TO_BOOKSHELF       = 7;
-    const SUCCESS_BOOK_REMOVED_FORM_BOOKSHELF   = 8;
-    const SUCCESS_BORROWED_BOOK                 = 9;
-    const SUCCESS_RETURNED_BOOK                 = 10;
-    const SUCCESS_BOOKSHELF_REQUEST_ADDED       = 11;
-    const SUCCESS_VOTED                         = 12;
-    const SUCCESS_BOOKSHELF_REQUESTS_EVALUATED  = 13;
-    const SUCCESS_BOOKSHELF_REQUEST_ACCEPTED    = 14;
-    const SUCCESS_BOOKSHELF_REQUEST_REJECTED    = 15;
-    const SUCCESS_USER_SCORE_UPDATED            = 16;
+    const SUCCESS_SIGNED_UP                     = 10;
+    const SUCCESS_SIGNED_IN                     = 11;
+    const SUCCESS_AUTH                          = 12;
+    const SUCCESS_SIGNED_OUT                    = 13;
+    const SUCCESS_USER_SCORE_UPDATED            = 14;
+
+    const SUCCESS_BOOK_ADDED                    = 20;
+    const SUCCESS_BOOKSHELF_ADDED               = 21;
+    const SUCCESS_BOOK_ADDED_TO_BOOKSHELF       = 22;
+    const SUCCESS_BOOK_REMOVED_FORM_BOOKSHELF   = 23;
+    const SUCCESS_BORROWED_BOOK                 = 24;
+    const SUCCESS_RETURNED_BOOK                 = 25;
+
+    const SUCCESS_BOOKSHELF_REQUEST_ADDED       = 30;
+    const SUCCESS_VOTED                         = 31;
+    const SUCCESS_BOOKSHELF_REQUESTS_EVALUATED  = 32;
+    const SUCCESS_BOOKSHELF_REQUEST_ACCEPTED    = 33;
+    const SUCCESS_BOOKSHELF_REQUEST_REJECTED    = 34;
 
     /* Database */
     const DATABASE_TABLE_USERS                                      = "users";
