@@ -385,21 +385,8 @@ class Bookshelf
             return -2;
         } else {
             $this->user->setUserId($result[0][0]);
-
-            $borrowed = $mysqli->databaseCount(Settings::DATABASE_TABLE_BORROWED_BOOKS,
-                Settings::KEY_BORROWED_BOOKS_BOOKSHELF_ID."=? AND ".Settings::KEY_BORROWED_BOOKS_USER_ID."=?",
-                "ii", [$this->bookshelfId, $this->user->getUserId()]);
-
-            $returned = $mysqli->databaseCount(Settings::DATABASE_TABLE_RETURNED_BOOKS,
-                Settings::KEY_RETURNED_BOOKS_BOOKSHELF_ID."=? AND ".Settings::KEY_RETURNED_BOOKS_USER_ID."=?",
-                "ii", [$this->bookshelfId, $this->user->getUserId()]);
-
-            if($borrowed == -1 || $returned == -1){
-                return -1;
-            }
+            return true;
         }
-
-        return $returned > $borrowed;
     }
 
     /**
