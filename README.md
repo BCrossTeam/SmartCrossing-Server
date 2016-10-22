@@ -288,6 +288,24 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | PUT         |              |              |                  | Brak                             |
 | DELETE      |              |              |                  | Brak                             |
 
+### .../bookshelf/book/search/
+
+| Metoda HTTP | Content-Type           | Opis wejścia | Przykład wejścia          | Akcja                                      |
+| ----------- | ---------------------- | ------------ | ------------------------- | ------------------------------------------|
+| GET         | -                      | -            | -                         | Zwraca listę książek na wszystkich półkach |
+| POST        | application/json       | JSON         | {"bookshelves":[1, 2, 3]} | Zwraca listę książek na wybranych półkach  |
+| PUT         |                        |              |                           | Brak                                       |
+| DELETE      |                        |              |                           | Brak                                       |
+
+### .../bookshelf/book/search/{like}/
+
+| Metoda HTTP | Content-Type           | Opis wejścia | Przykład wejścia          | Akcja                                                                             |
+| ----------- | ---------------------- | ------------ | ------------------------- | --------------------------------------------------------------------------------- |
+| GET         | -                      | -            | -                         | Zwraca listę książek na wszystkich półkach z tytułami zaczynającymi się od {like} |
+| POST        | application/json       | JSON         | {"bookshelves":[1, 2, 3]} | Zwraca listę książek na wybranych półkach z tytułami zaczynającymi się od {like}  |
+| PUT         |                        |              |                           | Brak                                                                              |
+| DELETE      |                        |              |                           | Brak                                                                              |
+
 ### .../bookshelf/{id}/stats/
 
 | Metoda HTTP | Content-Type | Opis wejścia | Przykład wejścia | Akcja                   |

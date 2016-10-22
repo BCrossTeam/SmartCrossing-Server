@@ -1391,6 +1391,52 @@ class Bookshelf
         }
     }
 
+    public static function searchBooksInBookshelves($like, $bookshelves = null, $returnRaw = false){
+        $mysqli = new DatabaseConnection();
+        $query = "SELECT ".implode(", ", [Settings::KEY_BOOKS_BOOK_ID, Settings::KEY_BOOKS_BOOK_TITLE])." FROM ".
+            Settings::DATABASE_TABLE_BOOKS." WHERE ".Settings::KEY_BOOKS_BOOK_TITLE." LIKE ? AND ".
+            Settings::KEY_BOOKS_BOOK_ID." IN (SELECT ".Settings::KEY_BOOKSHELVES_BOOKS_BOOK_ID." FROM ".
+            Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS;
+        $whereTypes = "s";
+        $whereVariables = [$like."%"];
+
+        if($bookshelves !== null && is_array($bookshelves) && count($bookshelves) > 0){
+            $query .= " WHERE " .Settings::KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID.
+                " IN (".implode(",", array_fill(0, count($bookshelves), "?")).")";
+            $whereTypes .= implode("", array_fill(0, count($bookshelves), "i"));
+            $whereVariables = array_merge($whereVariables, $bookshelves);
+        }
+        $query .= ")";
+
+
+        $result = $mysqli->databaseRawQuery($query, [Settings::KEY_BOOKS_BOOK_ID, Settings::KEY_BOOKS_BOOK_TITLE],
+            $whereTypes, $whereVariables);
+
+        $output = null;
+        if($result === -1){
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
+        } else if($result == null){
+            $output = [Settings::JSON_KEY_BOOKS_LIST => []];
+        } else {
+            $books = [];
+            foreach($result as $item){
+                $books[] = [Settings::JSON_KEY_BOOKS_BOOK_ID => $item[0],
+                    Settings::JSON_KEY_BOOKS_BOOK_TITLE => $item[1]];
+            }
+            $output = [Settings::JSON_KEY_BOOKS_LIST => $books];
+        }
+
+        if($returnRaw){
+            return $output;
+        } else {
+            return json_encode($output);
+        }
+    }
+
     /**
      * Function used to check if provided bookshelf coordinates format is valid.
      *

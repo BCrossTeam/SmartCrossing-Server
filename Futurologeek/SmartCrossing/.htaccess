@@ -19,6 +19,8 @@ RewriteRule ^user/ranking/([0-9]+)/?$                           public/index.php
 RewriteRule ^bookshelf/?$                                       public/index.php?class=bookshelf&action=none [nc,qsa,L]
 RewriteRule ^bookshelf/([0-9]+)/?$                              public/index.php?class=bookshelf&action=none&id=$1 [nc,qsa,L]
 RewriteRule ^bookshelf/stats/?$                                 public/index.php?class=bookshelf&action=stats [nc,qsa,L]
+RewriteRule ^bookshelf/book/search/?$                           public/index.php?class=bookshelf&action=search [nc,qsa,L]
+RewriteRule ^bookshelf/book/search/(.+)/?$                      public/index.php?class=bookshelf&action=search&like=$1 [nc,qsa,L]
 RewriteRule ^bookshelf/([0-9]+)/stats/?$                        public/index.php?class=bookshelf&action=stats&id=$1 [nc,qsa,L]
 RewriteRule ^bookshelf/([0-9]+)/book/?$                         public/index.php?class=bookshelf&action=book&id=$1 [nc,qsa,L]
 RewriteRule ^bookshelf/([0-9]+)/book/([0-9]+)/?$                public/index.php?class=bookshelf&action=book&id=$1&book_id=$2 [nc,qsa,L]

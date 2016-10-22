@@ -448,6 +448,21 @@ function handleBookshelf($jsonData){
             }
             break;
 
+        case "search":
+            switch ($_SERVER["REQUEST_METHOD"]){
+                case "GET":
+                case "POST":
+                    $like = isset($_GET["like"]) ? urldecode($_GET["like"]) : null;
+                    $bookshelves = (isset($jsonData) & isset($jsonData[Settings::JSON_KEY_BOOKSHELF_LIST])) ? $jsonData[Settings::JSON_KEY_BOOKSHELF_LIST] : null;
+                    return Bookshelf::searchBooksInBookshelves($like, $bookshelves);
+                    break;
+
+                default:
+                    return Settings::buildErrorMessage(Settings::ERROR_INVALID_METHOD);
+                    break;
+            }
+            break;
+
         default:
             switch ($_SERVER["REQUEST_METHOD"]){
                 case "GET":
