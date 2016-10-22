@@ -322,16 +322,12 @@ class Bookshelf
                 [Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ADDER],
                 Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOKSHELF_ID."=? AND ".
                 Settings::JSON_KEY_BOOKSHELVES_BOOKS_BOOK_ID."=?",
-                "ii", [$this->bookshelfId, $this->user->getUserId()]);
+                "ii", [$this->bookshelfId, $this->book->getBookId()]);
 
             if($result == -1){
                 return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
             } else if($result === null || count($result) <= 0) {
                 return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_IN_BOOKSHELF);
-            }
-
-            if($result[0][0] != $this->user->getUserId()){
-                return Settings::buildErrorMessage(Settings::ERROR_PERMISSION_DENIED);
             }
 
             $result = $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKSHELVES_BOOKS,
@@ -515,6 +511,13 @@ class Bookshelf
             return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
         } else if($auth == null){
             return Settings::buildErrorMessage(Settings::ERROR_AUTH_FAILED);
+        }
+
+        $inBookshelf = $this->book->isInBookshelf();
+        if($inBookshelf < 0){
+            return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+        } else if($inBookshelf === false){
+            return Settings::buildErrorMessage(Settings::ERROR_BOOK_NOT_IN_BOOKSHELF);
         }
 
         $bookshelfBook = $this->getBookshelfBook(true);
