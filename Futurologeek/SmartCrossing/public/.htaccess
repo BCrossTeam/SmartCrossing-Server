@@ -26,7 +26,8 @@ RewriteRule ^bookshelf/([0-9]+)/book/?$                         index.php?class=
 RewriteRule ^bookshelf/([0-9]+)/book/([0-9]+)/?$                index.php?class=bookshelf&action=book&id=$1&book_id=$2 [nc,qsa,L]
 
 RewriteRule ^bookshelf/request/?$                               index.php?class=bookshelf&action=request&admin=0 [nc,qsa,L]
-RewriteRule ^bookshelf/request/admin?$                          index.php?class=bookshelf&action=request&admin=1 [nc,qsa,L]
+RewriteRule ^bookshelf/request/token/([a-zA-Z0-9]+)/?$          index.php?class=bookshelf&action=request&admin=0&token=$1 [nc,qsa,L]
+RewriteRule ^bookshelf/request/admin/?$                         index.php?class=bookshelf&action=request&admin=1 [nc,qsa,L]
 RewriteRule ^bookshelf/request/([0-9]+)/?$                      index.php?class=bookshelf&action=request&id=$1&admin=0 [nc,qsa,L]
 RewriteRule ^bookshelf/request/([0-9]+)/admin/?$                index.php?class=bookshelf&action=request&id=$1&admin=1 [nc,qsa,L]
 RewriteRule ^bookshelf/request/([0-9]+)/admin/accept/?$         index.php?class=bookshelf&action=request&id=$1&admin=1&accepted=1 [nc,qsa,L]

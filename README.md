@@ -343,6 +343,15 @@ adresu url odpowiadającego danej akcji używając przy tym odpowiedniej metody 
 | PUT         |              |              |                  | Brak                                 |
 | DELETE      |              |              |                  | Brak                                 |
 
+### .../bookshelf/request/token/{token}/
+
+| Metoda HTTP | Content-Type | Opis wejścia | Przykład wejścia | Akcja                                                                                              |
+| ----------- | ------------ | ------------ | ---------------- | -------------------------------------------------------------------------------------------------- |
+| GET         | -            | -            | -                | Zwraca listę propozycji nowych półek, na które użytkownik o tokenie {token} jeszcze nie zagłosował |
+| POST        |              |              |                  | Brak                                                                                               |
+| PUT         |              |              |                  | Brak                                                                                               |
+| DELETE      |              |              |                  | Brak                                                                                               |
+
 ### .../bookshelf/request/admin/
 
 | Metoda HTTP | Content-Type | Opis wejścia | Przykład wejścia | Akcja                                                                      |

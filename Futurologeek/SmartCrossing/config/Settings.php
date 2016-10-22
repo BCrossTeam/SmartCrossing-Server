@@ -48,10 +48,10 @@ class Settings
         50
     ];
     const BADGES_SCORE_TIER_REQUIREMENTS = [
-        9999,
-        9999,
-        9999,
-        9999
+        100,
+        500,
+        3000,
+        10000
     ];
 
     /* Verification */

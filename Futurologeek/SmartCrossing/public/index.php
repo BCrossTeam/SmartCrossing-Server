@@ -387,7 +387,7 @@ function handleBookshelf($jsonData){
                         if(isset($_GET["admin"]) && boolval($_GET["admin"])){
                             return Bookshelf::getBookshelfRequestListAdmin();
                         } else {
-                            return Bookshelf::getBookshelfRequestList();
+                            return Bookshelf::getBookshelfRequestList(false, isset($_GET["token"]) ? $_GET["token"] : null);
                         }
                     }
                     break;
