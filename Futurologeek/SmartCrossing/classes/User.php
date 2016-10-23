@@ -495,6 +495,25 @@ class User
         }
     }
 
+    /**
+     * Function used to count user score.
+     *
+     * @param bool $returnRaw
+     * @param bool $omitUserCheck - omits checking if user exists (to not start infinite loop in getUser)
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null if user not exists
+     * int on success (score)
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return int|null|string
+     */
     public function countScore($returnRaw = false, $omitUserCheck = false){
         if(!$omitUserCheck){
             $exists = $this->getUser(true);
@@ -569,6 +588,25 @@ class User
         }
     }
 
+    /**
+     * Function used to evaluate achieved badge tiers.
+     *
+     * @param bool $returnRaw
+     * @param bool $omitUserCheck - omits checking if user exists (to not start infinite loop in getUser)
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null if user not exists
+     * Array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function checkBadges($returnRaw = false, $omitUserCheck = false){
         if(!$omitUserCheck){
             $exists = $this->getUser(true);
@@ -699,6 +737,27 @@ class User
         }
     }
 
+    /**
+     * Function used to get user stats (score, added books, borrowed books, borrowed unique books, returned books,
+     * returned unique books, score, badges). If an error occurred during fetching certain data its value is
+     * replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if book not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getUserStats($returnRaw = false){
         $exists = $this->getUser(true);
         if($exists === null || $exists === -1 || $exists === -2){
@@ -779,6 +838,25 @@ class User
         }
     }
 
+    /**
+     * Function used to get list of books borrowed by user.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if user not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getBorrowedBooks($returnRaw = false){
         $exists = $this->getUser(true);
         if($exists === null || $exists === -1 || $exists === -2){
@@ -821,6 +899,9 @@ class User
         if($returnRaw){
             if($result === -1 || $result === null){
                 return $result;
+            } else if($result === null){
+                return [Settings::JSON_KEY_USERS_USER_ID => $this->userId,
+                    Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS  => []];
             } else {
                 $output = [Settings::JSON_KEY_USERS_USER_ID => $this->userId,
                     Settings::JSON_KEY_USER_STATS_BORROWED_BOOKS  => []];
@@ -854,6 +935,15 @@ class User
         }
     }
 
+    /**
+     * Function used to update global ranking (count score of every user in for loop).
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
     public static function updateGlobalRanking(){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -872,6 +962,25 @@ class User
         }
     }
 
+    /**
+     * Function used to get global ranking. If buffer is different than 0 function returns only top $buffer users.
+     *
+     * @param int $buffer
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null if no users are present in database
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getGlobalRanking($buffer = 0, $returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -911,6 +1020,22 @@ class User
         }
     }
 
+    /**
+     * Function used to get global user stats (user count). If an error occurred during fetching certain data its value is
+     * replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * array
+     *
+     * If $returnRaw is false:
+     * string
+     *
+     * @return array|string
+     */
     public static function getGlobalUserStats($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();

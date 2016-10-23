@@ -658,6 +658,18 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to evaluate bookshelf requests. If request has expired it is eveluated.
+     * If request has not achieved required voters threshold it is ignored and waits for further admin evaluation.
+     * In other case it is evaluated. If required approval vote threshold was achieved request is transformed into
+     * bookshelf otherwise it is removed from database.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
     public function evaluateBookshelfRequests(){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -719,6 +731,16 @@ class Bookshelf
         return Settings::buildSuccessMessage(Settings::SUCCESS_BOOKSHELF_REQUESTS_EVALUATED);
     }
 
+    /**
+     * Function used to accept bookshelf requests. May be used only by admins and moderators.
+     * It basically transforms request into new bookshelf.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
     public function acceptBookshelfRequest(){
         $bookshelfRequest = $this->getBookshelfRequest(true);
 
@@ -775,6 +797,16 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to reject bookshelf requests. May be used only by admins and moderators.
+     * It basically removes bookshelf request.
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
     public function rejectBookshelfRequest(){
         $bookshelfRequest = $this->getBookshelfRequest(true);
 
@@ -818,6 +850,18 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to vote on bookshelf request. Bookshelf request vote must not be closed.
+     * It is not possible to vote twice.
+     *
+     * @param $approved
+     *
+     * Returns:
+     * Error message on error
+     * Success message on success
+     *
+     * @return string
+     */
     public function voteOnBookshelfRequest($approved){
         $bookshelfRequest = $this->getBookshelfRequest(true);
 
@@ -943,6 +987,26 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get bookshelf request public data (id, latitude, longitude, name, author, closing time)
+     * using bookshelf request id
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if bookshelf request not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getBookshelfRequest($returnRaw = false){
         if($this->bookshelfId > 0){
             $mysqli = new DatabaseConnection();
@@ -1091,6 +1155,25 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get list of books present in bookshelf.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if no books are present or bookshelf not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getBooksInBookshelf($returnRaw = false){
         $exists = $this->getBookshelf(true);
         if($exists === null || $exists === -1 || $exists === -2){
@@ -1153,6 +1236,26 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get bookshelf stats (book count, borrow count, unique borrow count, return count, unique return
+     * count). If an error occurred during fetching certain data its value is replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if bookshelf not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getBookshelfStats($returnRaw = false){
         $exists = $this->getBookshelf(true);
         if($exists === null || $exists === -1 || $exists === -2){
@@ -1208,24 +1311,67 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get global bookshelf stats (bookshelf count). If an error occurred during fetching certain data
+     * its value is replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getGlobalBookshelfStats($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
 
-        $usersCount = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELVES);
+        $result = $mysqli->databaseCount(Settings::DATABASE_TABLE_BOOKSHELVES);
 
         $mysqli->databaseClose();
 
-        $output = [];
-        $output[Settings::JSON_KEY_BOOKSHELVES_STATS_GLOBAL_BOOKSHELF_COUNT] = $usersCount !== -1 ? $usersCount : null;
-
-        if($returnRaw){
-            return $output;
+        if($result === -1){
+            if($returnRaw){
+                return -1;
+            } else {
+                return Settings::buildErrorMessage(Settings::ERROR_MYSQL_CONNECTION);
+            }
         } else {
-            return json_encode($output);
+            $output = [];
+            $output[Settings::JSON_KEY_BOOKSHELVES_STATS_GLOBAL_BOOKSHELF_COUNT] = $result !== null ? $result : null;
+            if($returnRaw){
+                return $output;
+            } else {
+                return json_encode($output);
+            }
         }
     }
 
+    /**
+     * Function used to get bookshelf list containing bookshelf id, latitude, longitude, name and list of books.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null if no bookshelves has been fetched
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getBookshelfList($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -1289,6 +1435,26 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get bookshelf request list containing bookshelf request id, latitude, longitude, name and vote
+     * closing time. If token is provided list is filtered to show only requests on which user has not voted yet.
+     *
+     * @param bool $returnRaw
+     * @param string $token
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * null on auth error (if token was given)
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getBookshelfRequestList($returnRaw = false, $token = null){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -1382,6 +1548,24 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to get bookshelf request list containing bookshelf request id, latitude, longitude, name and vote
+     * closing time.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getBookshelfRequestListAdmin($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -1435,6 +1619,26 @@ class Bookshelf
         }
     }
 
+    /**
+     * Function used to search for books in bookshelves starting from $like. If $bookshelves is null, empty or is not
+     * array no filtering is used in other case function searches for books only in selected bookshelves.
+     *
+     * @param string $like
+     * @param array $bookshelves
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function searchBooksInBookshelves($like, $bookshelves = null, $returnRaw = false){
         $mysqli = new DatabaseConnection();
         $query = "SELECT ".implode(", ", [Settings::KEY_BOOKS_BOOK_ID, Settings::KEY_BOOKS_BOOK_TITLE])." FROM ".

@@ -412,6 +412,27 @@ class Book
         }
     }
 
+    /**
+     * Function used to get books stats (borrow count, unique borrow count, return count, unique return count, is in
+     * bookshelf (if true bookshelf id is given)). If an error occurred during fetching certain data its value is
+     * replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -2 on invalid input
+     * -1 on mysql error
+     * null if book not exists
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public function getBookStats($returnRaw = false){
         $exists = $this->getBook(true);
         if($exists === null || $exists === -1 || $exists === -2){
@@ -479,6 +500,25 @@ class Book
         }
     }
 
+    /**
+     * Function used to get global books stats (books count, books in bookshelves count, borrow count, unique borrow
+     * count, return count, unique return count). If an error occurred during fetching certain data its value is
+     * replaced by null.
+     *
+     * @param bool $returnRaw
+     *
+     * Returns:
+     *
+     * If $returnRaw is true:
+     * -1 on mysql error
+     * array on success
+     *
+     * If $returnRaw is false:
+     * Error message on error
+     * Success message on success
+     *
+     * @return array|int|null|string
+     */
     public static function getGlobalBookStats($returnRaw = false){
         $mysqli = new DatabaseConnection();
         $mysqli->databaseConnect();
@@ -582,6 +622,7 @@ class Book
             case self::BOOK_CATEGORY_ROMANCE:
             case self::BOOK_CATEGORY_SCI_FI:
             case self::BOOK_CATEGORY_HEALTH:
+            case null:
                 return true;
                 break;
 
