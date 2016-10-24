@@ -264,29 +264,30 @@ class Book
             $this->bookId = $result;
             $data = [[Settings::JSON_KEY_SUCCESS, Settings::SUCCESS_BOOK_ADDED]];
 
-            $this->bookCover = Support::generateCoverFileName($this->bookId, $this->coverFile);
-            if(!move_uploaded_file($this->coverFile['tmp_name'], Settings::COVER_DIRECTORY_PATH.$this->bookCover)){
-                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
-                    [$this->bookId]);
-                if($returnRaw){
-                    return -3;
-                } else {
-                    return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+            if($this->coverFile != null){
+                $this->bookCover = Support::generateCoverFileName($this->bookId, $this->coverFile);
+                if(!move_uploaded_file($this->coverFile['tmp_name'], Settings::COVER_DIRECTORY_PATH.$this->bookCover)){
+                    $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
+                        [$this->bookId]);
+                    if($returnRaw){
+                        return -3;
+                    } else {
+                        return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+                    }
                 }
-            }
 
-            $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_BOOKS, [Settings::KEY_BOOKS_BOOK_COVER], "s",
+                $result = $mysqli->databaseUpdate(Settings::DATABASE_TABLE_BOOKS, [Settings::KEY_BOOKS_BOOK_COVER], "s",
                     [$this->bookCover], Settings::KEY_BOOKS_BOOK_ID."=?", "i", [$this->bookId]);
 
-
-            if($result < 0){
-                unlink(Settings::COVER_DIRECTORY_PATH.$this->bookCover);
-                $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
-                    [$this->bookId]);
-                if($returnRaw){
-                    return -3;
-                } else {
-                    return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+                if($result < 0){
+                    unlink(Settings::COVER_DIRECTORY_PATH.$this->bookCover);
+                    $mysqli->databaseDeleteRow(Settings::DATABASE_TABLE_BOOKS, Settings::KEY_BOOKS_BOOK_ID."=?", "i",
+                        [$this->bookId]);
+                    if($returnRaw){
+                        return -3;
+                    } else {
+                        return Settings::buildErrorMessage(Settings::ERROR_UPLOAD_ERROR);
+                    }
                 }
             }
 

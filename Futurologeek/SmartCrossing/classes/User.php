@@ -891,9 +891,13 @@ class User
             " WHERE ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::KEY_RETURNED_BOOKS_USER_ID."=? GROUP BY ".
             Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID.
             ") AS B ON B.returned_book=".Settings::KEY_BOOKS_BOOK_ID.
-            " WHERE borrow_count > return_count OR (borrow_count IS NOT NULL AND return_count IS NULL))",
+            " WHERE borrow_count > return_count OR (borrow_count IS NOT NULL AND return_count IS NULL)) UNION SELECT "
+            .Settings::KEY_BOOKS_BOOK_ID.", ".Settings::KEY_BOOKS_BOOK_TITLE.", ".Settings::KEY_BOOKS_BOOK_AUTHOR.
+            " FROM ".Settings::DATABASE_TABLE_BOOKS." WHERE ".Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=? AND " .
+            Settings::KEY_BOOKS_BOOK_ID." NOT IN (SELECT ".Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID." FROM ".
+            Settings::DATABASE_TABLE_RETURNED_BOOKS." WHERE ".Settings::JSON_KEY_RETURNED_BOOKS_USER_ID."=?)",
             [Settings::JSON_KEY_BOOKS_BOOK_ID, Settings::JSON_KEY_BOOKS_BOOK_TITLE,
-                Settings::JSON_KEY_BOOKS_BOOK_AUTHOR], "ii", [$this->userId, $this->userId]);
+                Settings::JSON_KEY_BOOKS_BOOK_AUTHOR], "iiii", [$this->userId, $this->userId, $this->userId, $this->userId]);
         $mysqli->databaseClose();
 
         if($returnRaw){
