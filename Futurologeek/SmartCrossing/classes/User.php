@@ -879,21 +879,24 @@ class User
         $result = $mysqli->databaseRawQuery(
             "SELECT ".Settings::KEY_BOOKS_BOOK_ID.", ".Settings::KEY_BOOKS_BOOK_TITLE.
             ", ".Settings::KEY_BOOKS_BOOK_AUTHOR." FROM ".Settings::DATABASE_TABLE_BOOKS." WHERE ".
-            Settings::KEY_BOOKS_BOOK_ID." IN (SELECT DISTINCT ".Settings::JSON_KEY_BORROWED_BOOKS_BOOK_ID." FROM ".
+            Settings::KEY_BOOKS_BOOK_ID." IN (SELECT DISTINCT ".Settings::KEY_BORROWED_BOOKS_BOOK_ID." FROM ".
             Settings::DATABASE_TABLE_BORROWED_BOOKS." LEFT JOIN (SELECT ".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
             Settings::KEY_BORROWED_BOOKS_BOOK_ID." as borrowed_book, COUNT(".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
-            Settings::KEY_BORROWED_BOOKS_BORROW_ID.") as borrow_count FROM ".Settings::DATABASE_TABLE_BORROWED_BOOKS.
-            " WHERE ".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".Settings::KEY_BORROWED_BOOKS_USER_ID."=? GROUP BY ".
-            Settings::DATABASE_TABLE_BORROWED_BOOKS.".".Settings::KEY_BORROWED_BOOKS_BOOK_ID.") AS A ON A.borrowed_book=".
-            Settings::KEY_BOOKS_BOOK_ID." LEFT JOIN (SELECT ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
-            Settings::KEY_BORROWED_BOOKS_BOOK_ID." as returned_book, COUNT(".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
-            Settings::KEY_RETURNED_BOOKS_RETURN_ID.") as return_count FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS.
-            " WHERE ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::KEY_RETURNED_BOOKS_USER_ID."=? GROUP BY ".
-            Settings::DATABASE_TABLE_RETURNED_BOOKS.".".Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID.
-            ") AS B ON B.returned_book=".Settings::KEY_BOOKS_BOOK_ID.
-            " WHERE borrow_count > return_count OR (borrow_count IS NOT NULL AND return_count IS NULL)) UNION SELECT "
-            .Settings::KEY_BOOKS_BOOK_ID.", ".Settings::KEY_BOOKS_BOOK_TITLE.", ".Settings::KEY_BOOKS_BOOK_AUTHOR.
-            " FROM ".Settings::DATABASE_TABLE_BOOKS." WHERE ".Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=? AND " .
+            Settings::KEY_BORROWED_BOOKS_BORROW_ID.") as borrow_count, ".Settings::KEY_BORROWED_BOOKS_BORROW_TIME." FROM "
+            .Settings::DATABASE_TABLE_BORROWED_BOOKS. " WHERE ".Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
+            Settings::KEY_BORROWED_BOOKS_USER_ID."=? GROUP BY ". Settings::DATABASE_TABLE_BORROWED_BOOKS.".".
+            Settings::KEY_BORROWED_BOOKS_BOOK_ID.") AS A ON A.borrowed_book=". Settings::KEY_BOOKS_BOOK_ID.
+            " LEFT JOIN (SELECT ".Settings::DATABASE_TABLE_RETURNED_BOOKS.".". Settings::KEY_BORROWED_BOOKS_BOOK_ID.
+            " as returned_book, COUNT(".Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
+            Settings::KEY_RETURNED_BOOKS_RETURN_ID.") as return_count, ".Settings::KEY_RETURNED_BOOKS_RETURN_TIME.
+            " FROM ".Settings::DATABASE_TABLE_RETURNED_BOOKS. " WHERE ".Settings::DATABASE_TABLE_RETURNED_BOOKS."."
+            .Settings::KEY_RETURNED_BOOKS_USER_ID."=? GROUP BY ". Settings::DATABASE_TABLE_RETURNED_BOOKS.".".
+            Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID.") AS B ON B.returned_book=".Settings::KEY_BOOKS_BOOK_ID.
+            " WHERE (borrow_count > return_count) OR (borrow_count=return_count AND A.".
+            Settings::KEY_BORROWED_BOOKS_BORROW_TIME.">B.".Settings::KEY_RETURNED_BOOKS_RETURN_TIME.
+            ") OR (borrow_count IS NOT NULL AND return_count IS NULL)) UNION SELECT " .Settings::KEY_BOOKS_BOOK_ID.
+            ", ".Settings::KEY_BOOKS_BOOK_TITLE.", ".Settings::KEY_BOOKS_BOOK_AUTHOR. " FROM ".
+            Settings::DATABASE_TABLE_BOOKS." WHERE ".Settings::KEY_BOOKS_BOOK_USER_AUTHOR."=? AND " .
             Settings::KEY_BOOKS_BOOK_ID." NOT IN (SELECT ".Settings::JSON_KEY_RETURNED_BOOKS_BOOK_ID." FROM ".
             Settings::DATABASE_TABLE_RETURNED_BOOKS." WHERE ".Settings::JSON_KEY_RETURNED_BOOKS_USER_ID."=?)",
             [Settings::JSON_KEY_BOOKS_BOOK_ID, Settings::JSON_KEY_BOOKS_BOOK_TITLE,
